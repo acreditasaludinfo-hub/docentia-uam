@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Generador de Informe DOCENTIA-UAM · AcreditaSalud</title>
+<title>Generador de autoinformes DOCENTIA — Universidades de Madrid · AcreditaSalud</title>
 <script>/* JSZip 3.x embebido (offline) */
 /*!
 
@@ -163,6 +163,56 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .review dt{font-weight:700;color:var(--brand-dark);margin-top:12px}
   .review dd{margin:2px 0 0;white-space:pre-wrap}
   .review .empty{color:var(--warn);font-style:italic}
+
+  /* ==== Selector de universidad en la cabecera ==== */
+  .unipick{margin-left:auto;display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+  .unipick label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;opacity:.85}
+  .unipick select{font-family:inherit;font-size:14px;font-weight:600;color:var(--brand-dark);
+    background:#fff;border:1px solid rgba(255,255,255,.4);border-radius:10px;padding:8px 11px;min-width:260px;cursor:pointer}
+  .unipick select:focus{outline:none;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
+  .freetag{font-size:11.5px;opacity:.9;margin-top:1px}
+  @media(max-width:720px){
+    header.app .wrap{flex-direction:column;align-items:flex-start}
+    .unipick{margin-left:0;align-items:flex-start;width:100%}
+    .unipick select{width:100%;min-width:0}
+  }
+
+  /* ==== Aviso por universidad ==== */
+  .unimsg{background:#fff8ee;border:1px solid #f0dcae;border-left:5px solid var(--amber);
+    border-radius:10px;padding:12px 14px;font-size:13.5px;color:#6b4d16;margin:0 0 16px}
+  .unimsg b{color:#4a3407}
+  .srcline{font-size:12px;color:var(--muted);margin-top:6px}
+
+  /* ==== Escala tipo Likert (0-10) ==== */
+  .scale-item{border-top:1px solid var(--line);padding:12px 0}
+  .scale-item:first-child{border-top:none}
+  .scale-item .txt{font-size:14.5px;margin-bottom:7px}
+  .scale-opts{display:flex;flex-wrap:wrap;gap:5px}
+  .scale-opts button{width:34px;height:34px;border:1px solid var(--line);background:#fff;border-radius:8px;
+    font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:.12s}
+  .scale-opts button:hover{border-color:var(--brand)}
+  .scale-opts button.sel{background:var(--brand);border-color:var(--brand);color:#fff}
+
+  /* ==== Rúbrica de opciones ==== */
+  .rub{display:flex;flex-direction:column;gap:8px}
+  .rub .opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;
+    padding:11px 13px;cursor:pointer;background:#fff;transition:.12s;font-size:14.5px}
+  .rub .opt:hover{border-color:var(--brand)}
+  .rub .opt.sel{border-color:var(--brand);background:var(--brand-soft)}
+  .rub .opt input{margin-top:3px;accent-color:var(--brand)}
+
+  /* ==== Bloques de ejemplos ==== */
+  .exblock{border:1px solid var(--line);border-radius:10px;padding:14px;background:#fafcfc;margin-bottom:12px}
+  .exblock > .exh{font-weight:700;color:var(--brand-dark);font-size:14px;margin-bottom:10px}
+
+  /* ==== Selección múltiple ==== */
+  .multi{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  @media(max-width:620px){.multi{grid-template-columns:1fr}}
+  .multi label{display:flex;gap:8px;align-items:flex-start;font-size:14px;border:1px solid var(--line);
+    border-radius:9px;padding:9px 11px;cursor:pointer;background:#fff}
+  .multi label.sel{border-color:var(--brand);background:var(--brand-soft)}
+  .multi input{margin-top:2px;accent-color:var(--brand)}
+
 </style>
 </head>
 <body>
@@ -170,10 +220,14 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   <div class="wrap">
     <img class="logo-img" src="data:image/png;base64,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" alt="AcreditaSalud">
     <div>
-      <h1>Generador de Informe DOCENTIA-UAM</h1>
-      <div class="sub">Marco de apoyo para preparar tu autoinforme docente · 19ª convocatoria (2026)</div>
+      <h1>Generador de autoinformes DOCENTIA</h1>
+      <div class="sub" id="uniSub">Universidades de la Comunidad de Madrid</div>
+      <div class="freetag">Herramienta <b>gratuita</b> de AcreditaSalud.com</div>
     </div>
-    <div class="brandtag">Una herramienta gratuita de<br><b>AcreditaSalud.com</b></div>
+    <div class="unipick">
+      <label for="uniSel">Elige tu universidad</label>
+      <select id="uniSel"></select>
+    </div>
   </div>
 </header>
 <div class="privacy">🔒 <b>Todo se procesa en tu navegador.</b> Ningún dato sale de tu ordenador: no hay servidor ni registro.</div>
@@ -187,21 +241,39 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
 <footer class="app">
   <div class="wrap">
-    <div class="disclaimer"><b>Aviso:</b> herramienta no oficial, de apoyo a la preparación del autoinforme. No sustituye a la plataforma
-    oficial del Programa DOCENTIA-UAM ni a las bases de la convocatoria. Verifica siempre los requisitos y textos en
-    la <a href="https://www.uam.es/uam/uce/programa-docentia" target="_blank" rel="noopener">web oficial del Programa</a> y en
-    la <a href="https://www.aneca.es/docentia" target="_blank" rel="noopener">documentación de ANECA</a>. La redacción es responsabilidad de cada docente y debe ser original.</div>
-    <div>Estructura basada en el Manual y las Bases de la 19ª convocatoria DOCENTIA-UAM (2026). Generador desarrollado para AcreditaSalud.com.</div>
+    <div class="disclaimer"><b>Aviso:</b> herramienta gratuita y <b>no oficial</b>, de apoyo a la preparación del autoinforme.
+    No sustituye a la plataforma oficial de cada programa DOCENTIA ni a las bases de su convocatoria. Consulta siempre los
+    requisitos, los plazos de apertura y cierre y los textos vigentes en <a id="ftOficial" href="#" target="_blank" rel="noopener">la web oficial del programa</a>
+    de tu universidad y en la <a href="https://www.aneca.es/docentia" target="_blank" rel="noopener">documentación de ANECA</a>.
+    La redacción es responsabilidad de cada docente y debe ser original.</div>
+    <div id="ftFuente"></div>
+    <div>Cada universidad de la Comunidad de Madrid tiene su propio programa DOCENTIA, certificado por la
+    <a href="https://www.madrimasd.org/calidad-universitaria/evaluacion-acreditacion-verificacion-titulos-oficiales/docentia" target="_blank" rel="noopener">Fundación Madri+d</a>,
+    con manual, dimensiones y calendario distintos. Generador desarrollado para AcreditaSalud.com.</div>
   </div>
 </footer>
 
 <script>
 /* ============================================================
-   DATOS: dimensiones y preguntas por submodelo
-   Tipos de campo: 'textarea' (limit), 'bp' (grupo buenas prácticas),
-   'repeater' (lista con columnas)
+   Generador de autoinformes DOCENTIA — Universidades de Madrid
+   AcreditaSalud.com · herramienta gratuita
+
+   Tipos de campo:
+     'textarea'  texto libre (limit)
+     'bp'        grupo de subcampos de texto
+     'repeater'  tabla de filas con columnas
+     'scale'     lista de afirmaciones con escala numérica
+     'rubric'    una opción entre varias (rúbrica)
+     'examples'  n bloques de ejemplo, cada uno con varios campos
+     'multi'     selección múltiple de una lista cerrada
    ============================================================ */
-const DIMS = {
+
+function Q(code,dim,title,enun,type,extra){return Object.assign({code,dim,title,enun,type},extra||{});}
+
+/* ============================================================
+   UNIVERSIDAD AUTÓNOMA DE MADRID (UAM)
+   ============================================================ */
+const DIMS_UAM = {
   1:{name:"Dimensión 1 · Encargo docente"},
   2:{name:"Dimensión 2 · Desempeño docente"},
   3:{name:"Dimensión 3 · Formación e innovación docente"},
@@ -209,7 +281,7 @@ const DIMS = {
 };
 
 // Ayudas reutilizables
-const H = {
+const H_UAM = {
   afinidad:{v:["Coherencia entre tu especialización/investigación y las asignaturas que impartes.","Capacidad de transferir tu conocimiento experto al aula."],
     e:["Cuál es tu línea de especialización o investigación.","Qué asignaturas de tu encargo se alinean con ella y por qué.","Un ejemplo concreto de cómo tu investigación enriquece una asignatura."]},
   tutela:{v:["Método de acompañamiento claro y sistemático.","Diferenciar exigencia y autonomía según la tipología (TFG < TFM < Tesis)."],
@@ -239,7 +311,7 @@ const H = {
 };
 
 // Columnas para repeaters
-const COLS = {
+const COLS_UAM = {
   actividades:[{k:"curso",l:"Curso"},{k:"tipo",l:"Tipo de actividad"},{k:"nombre",l:"Nombre de la comisión / actividad"},{k:"period",l:"Periodicidad"}],
   materiales:[{k:"anio",l:"Curso / Año"},{k:"tipo",l:"Tipo de material"},{k:"rol",l:"Rol (autor/coautor/coord.)"},{k:"autores",l:"Nº autores"},{k:"id",l:"Identificador (ISBN/DOI/nº Moodle)"}]
 };
@@ -247,82 +319,550 @@ const COLS = {
 // Definiciones compartidas de preguntas (se referencian por clave)
 function Q(code,dim,title,enun,type,extra){return Object.assign({code,dim,title,enun,type},extra||{});}
 
-const QDEF = {
-  afinidad:   (c)=>Q(c,1,"Afinidad con el encargo docente","Señale la afinidad de su encargo docente con la especialización o investigación desarrollada.","textarea",{limit:2000,help:H.afinidad}),
-  encargoIRA: (c)=>Q(c,1,"Sobre encargo docente (IRA)","¿Qué criterios se han seguido en el departamento para la asignación de su encargo docente y de las tutelas académicas en los cursos elegidos?","textarea",{limit:2000,help:H.asignacion,ira:true}),
-  tutela:     (c)=>Q(c,1,"Proceso de tutela y/o dirección","Describa cómo desarrolla el proceso de tutela y dirección para cada tipología (TD, TFM y TFG), así como de prácticas externas curriculares (si procede).","textarea",{limit:2000,help:H.tutela}),
-  asignacion: (c)=>Q(c,1,"Asignación del encargo docente (IRA)","¿Qué criterios se han seguido en el departamento para la asignación de su encargo docente (asignaturas, dirección y/o tutela)? Añada cualquier aspecto que quiera referenciar.","textarea",{limit:2000,help:H.asignacion,ira:true}),
-  actInst:    (c)=>Q(c,3,"Actividades institucionales","Añada las actividades institucionales en las que haya participado durante los cursos evaluados.","repeater",{cols:COLS.actividades}),
-  formacion:  (c)=>Q(c,3,"Actividades de formación docente","Si cuenta con formación para la docencia, señale los cambios en su docencia derivados de las actividades formativas más relevantes. Si no, indique los motivos.","textarea",{limit:2000,help:H.formacion}),
-  innovacion: (c)=>Q(c,3,"Innovación docente","Si cuenta con proyectos de innovación docente, señale los cambios derivados en su docencia e indique cómo pueden incidir en la de otros. Si no, indique los motivos.","textarea",{limit:2000,help:H.innovacion}),
-  mejora:     (c)=>Q(c,3,"Actividades de mejora de la calidad universitaria","Añada las actividades relacionadas con la docencia y la mejora de la calidad universitaria en las que haya participado.","repeater",{cols:COLS.actividades}),
-  ecoe:       (c)=>Q(c,2,"Participación en la Evaluación Clínica Objetiva Estructurada (ECOE)","Describa su participación en la ECOE: ¿participó en el diseño de la prueba? ¿apoyó el día de la prueba?","textarea",{limit:1000,help:H.ecoe}),
-  perfil:     (c)=>Q(c,2,"Análisis del perfil de estudiantes","Describa los procedimientos e instrumentos que utiliza para conocer el perfil, diversidad y necesidades de su alumnado, y las consecuencias derivadas. Si no procede, indique los motivos.","textarea",{limit:2000,help:H.perfil}),
-  bp:         (c)=>Q(c,2,"Desarrollo de buenas prácticas docentes","Escoja una asignatura y describa la que considera su mejor práctica docente.","bp",{sub:[{k:"asig",l:"Asignatura",limit:120},{k:"desc",l:"Descripción de la buena práctica — ¿en qué consiste?",limit:1500},{k:"motiv",l:"Motivación o causa — ¿qué la motivó?",limit:1500},{k:"conse",l:"Consecuencias o impacto derivados",limit:1500}],help:H.bp}),
-  metodos:    (c)=>Q(c,2,"Métodos de evaluación y retroalimentación","Señale el tipo de retroalimentación (cualitativa y/o cuantitativa) que desarrolla con sus estudiantes en las asignaturas elegidas.","textarea",{limit:1500,help:H.metodos}),
-  retro:      (c)=>Q(c,2,"Retroalimentación (procedimiento de feedback)","Describa el procedimiento que lleva a cabo para dar feedback a sus estudiantes.","textarea",{limit:2000,help:H.retro}),
-  fuentes:    (c)=>Q(c,2,"Análisis sobre su docencia (fuentes)","Si analiza de forma sistemática su desempeño docente, señale las fuentes que utiliza. Recuerde adjuntar en la plataforma un documento que evidencie el análisis.","textarea",{limit:1500,help:H.fuentes}),
-  analisis:   (c)=>Q(c,2,"Sobre análisis de su docencia","Describa cómo analiza la información que recoge sobre su docencia y las consecuencias derivadas.","textarea",{limit:2000,help:H.analisis}),
-  materiales: (c)=>Q(c,4,"Generación de materiales didácticos","Aporte los que considere sus cinco mejores materiales docentes orientados al estudiante y utilizados en la UAM.","repeater",{cols:COLS.materiales,max:5}),
-  materialesD:(c)=>Q(c,4,"Sobre materiales","Describa por qué considera que el material aportado es el mejor de su trayectoria docente y señale sus componentes didácticos para el estudiantado.","textarea",{limit:2000,help:H.materialesDesc})
+const QDEF_UAM = {
+  afinidad:   (c)=>Q(c,1,"Afinidad con el encargo docente","Señale la afinidad de su encargo docente con la especialización o investigación desarrollada.","textarea",{limit:2000,help:H_UAM.afinidad}),
+  encargoIRA: (c)=>Q(c,1,"Sobre encargo docente (IRA)","¿Qué criterios se han seguido en el departamento para la asignación de su encargo docente y de las tutelas académicas en los cursos elegidos?","textarea",{limit:2000,help:H_UAM.asignacion,ira:true}),
+  tutela:     (c)=>Q(c,1,"Proceso de tutela y/o dirección","Describa cómo desarrolla el proceso de tutela y dirección para cada tipología (TD, TFM y TFG), así como de prácticas externas curriculares (si procede).","textarea",{limit:2000,help:H_UAM.tutela}),
+  asignacion: (c)=>Q(c,1,"Asignación del encargo docente (IRA)","¿Qué criterios se han seguido en el departamento para la asignación de su encargo docente (asignaturas, dirección y/o tutela)? Añada cualquier aspecto que quiera referenciar.","textarea",{limit:2000,help:H_UAM.asignacion,ira:true}),
+  actInst:    (c)=>Q(c,3,"Actividades institucionales","Añada las actividades institucionales en las que haya participado durante los cursos evaluados.","repeater",{cols:COLS_UAM.actividades}),
+  formacion:  (c)=>Q(c,3,"Actividades de formación docente","Si cuenta con formación para la docencia, señale los cambios en su docencia derivados de las actividades formativas más relevantes. Si no, indique los motivos.","textarea",{limit:2000,help:H_UAM.formacion}),
+  innovacion: (c)=>Q(c,3,"Innovación docente","Si cuenta con proyectos de innovación docente, señale los cambios derivados en su docencia e indique cómo pueden incidir en la de otros. Si no, indique los motivos.","textarea",{limit:2000,help:H_UAM.innovacion}),
+  mejora:     (c)=>Q(c,3,"Actividades de mejora de la calidad universitaria","Añada las actividades relacionadas con la docencia y la mejora de la calidad universitaria en las que haya participado.","repeater",{cols:COLS_UAM.actividades}),
+  ecoe:       (c)=>Q(c,2,"Participación en la Evaluación Clínica Objetiva Estructurada (ECOE)","Describa su participación en la ECOE: ¿participó en el diseño de la prueba? ¿apoyó el día de la prueba?","textarea",{limit:1000,help:H_UAM.ecoe}),
+  perfil:     (c)=>Q(c,2,"Análisis del perfil de estudiantes","Describa los procedimientos e instrumentos que utiliza para conocer el perfil, diversidad y necesidades de su alumnado, y las consecuencias derivadas. Si no procede, indique los motivos.","textarea",{limit:2000,help:H_UAM.perfil}),
+  bp:         (c)=>Q(c,2,"Desarrollo de buenas prácticas docentes","Escoja una asignatura y describa la que considera su mejor práctica docente.","bp",{sub:[{k:"asig",l:"Asignatura",limit:120},{k:"desc",l:"Descripción de la buena práctica — ¿en qué consiste?",limit:1500},{k:"motiv",l:"Motivación o causa — ¿qué la motivó?",limit:1500},{k:"conse",l:"Consecuencias o impacto derivados",limit:1500}],help:H_UAM.bp}),
+  metodos:    (c)=>Q(c,2,"Métodos de evaluación y retroalimentación","Señale el tipo de retroalimentación (cualitativa y/o cuantitativa) que desarrolla con sus estudiantes en las asignaturas elegidas.","textarea",{limit:1500,help:H_UAM.metodos}),
+  retro:      (c)=>Q(c,2,"Retroalimentación (procedimiento de feedback)","Describa el procedimiento que lleva a cabo para dar feedback a sus estudiantes.","textarea",{limit:2000,help:H_UAM.retro}),
+  fuentes:    (c)=>Q(c,2,"Análisis sobre su docencia (fuentes)","Si analiza de forma sistemática su desempeño docente, señale las fuentes que utiliza. Recuerde adjuntar en la plataforma un documento que evidencie el análisis.","textarea",{limit:1500,help:H_UAM.fuentes}),
+  analisis:   (c)=>Q(c,2,"Sobre análisis de su docencia","Describa cómo analiza la información que recoge sobre su docencia y las consecuencias derivadas.","textarea",{limit:2000,help:H_UAM.analisis}),
+  materiales: (c)=>Q(c,4,"Generación de materiales didácticos","Aporte los que considere sus cinco mejores materiales docentes orientados al estudiante y utilizados en la UAM.","repeater",{cols:COLS_UAM.materiales,max:5}),
+  materialesD:(c)=>Q(c,4,"Sobre materiales","Describa por qué considera que el material aportado es el mejor de su trayectoria docente y señale sus componentes didácticos para el estudiantado.","textarea",{limit:2000,help:H_UAM.materialesDesc})
 };
 
 // Submodelos: orden y numeración exactos
-const MODELS = {
+const MODELS_UAM = {
   G:{name:"GENERAL",desc:"Profesorado permanente, interino, Ayudante Doctor (LOU), Asociado, posdoctoral… que no sea AV.CC.SS ni PDIF.",
      questions:[
-       QDEF.afinidad("P3"),QDEF.tutela("P4"),QDEF.asignacion("P5"),
-       QDEF.perfil("P13"),QDEF.bp("P14"),QDEF.metodos("P15"),QDEF.retro("P16"),QDEF.fuentes("P17"),QDEF.analisis("P18"),
-       QDEF.actInst("P7"),QDEF.formacion("P9"),QDEF.innovacion("P11"),QDEF.mejora("P12"),
-       QDEF.materiales("P19"),QDEF.materialesD("P20")
+       QDEF_UAM.afinidad("P3"),QDEF_UAM.tutela("P4"),QDEF_UAM.asignacion("P5"),
+       QDEF_UAM.perfil("P13"),QDEF_UAM.bp("P14"),QDEF_UAM.metodos("P15"),QDEF_UAM.retro("P16"),QDEF_UAM.fuentes("P17"),QDEF_UAM.analisis("P18"),
+       QDEF_UAM.actInst("P7"),QDEF_UAM.formacion("P9"),QDEF_UAM.innovacion("P11"),QDEF_UAM.mejora("P12"),
+       QDEF_UAM.materiales("P19"),QDEF_UAM.materialesD("P20")
      ]},
   AV:{name:"Asociados de Ciencias de la Salud / Vinculados (AV.CC.SS)",desc:"Personal Asociado de Ciencias de la Salud o Vinculado. Incluye la pregunta clínica ECOE.",
      questions:[
-       QDEF.encargoIRA("P3"),QDEF.tutela("P4"),QDEF.asignacion("P5"),
-       QDEF.ecoe("P13"),QDEF.perfil("P14"),QDEF.bp("P15"),QDEF.metodos("P16"),QDEF.retro("P17"),QDEF.fuentes("P18"),QDEF.analisis("P19"),
-       QDEF.actInst("P7"),QDEF.formacion("P9"),QDEF.innovacion("P11"),QDEF.mejora("P12"),
-       QDEF.materiales("P20"),QDEF.materialesD("P21")
+       QDEF_UAM.encargoIRA("P3"),QDEF_UAM.tutela("P4"),QDEF_UAM.asignacion("P5"),
+       QDEF_UAM.ecoe("P13"),QDEF_UAM.perfil("P14"),QDEF_UAM.bp("P15"),QDEF_UAM.metodos("P16"),QDEF_UAM.retro("P17"),QDEF_UAM.fuentes("P18"),QDEF_UAM.analisis("P19"),
+       QDEF_UAM.actInst("P7"),QDEF_UAM.formacion("P9"),QDEF_UAM.innovacion("P11"),QDEF_UAM.mejora("P12"),
+       QDEF_UAM.materiales("P20"),QDEF_UAM.materialesD("P21")
      ]},
   PDIF:{name:"Personal Docente e Investigador en Formación (PDIF)",desc:"PDIF. Modelo reducido: sin afinidad, sin análisis de perfil ni métodos de evaluación.",
      questions:[
-       QDEF.encargoIRA("P3"),QDEF.tutela("P4"),QDEF.asignacion("P5"),
-       QDEF.bp("P11"),QDEF.retro("P12"),QDEF.fuentes("P13"),QDEF.analisis("P14"),
-       QDEF.formacion("P7"),QDEF.innovacion("P9"),QDEF.mejora("P10"),
-       QDEF.materiales("P15"),QDEF.materialesD("P16")
+       QDEF_UAM.encargoIRA("P3"),QDEF_UAM.tutela("P4"),QDEF_UAM.asignacion("P5"),
+       QDEF_UAM.bp("P11"),QDEF_UAM.retro("P12"),QDEF_UAM.fuentes("P13"),QDEF_UAM.analisis("P14"),
+       QDEF_UAM.formacion("P7"),QDEF_UAM.innovacion("P9"),QDEF_UAM.mejora("P10"),
+       QDEF_UAM.materiales("P15"),QDEF_UAM.materialesD("P16")
      ]}
 };
 
-const CURSOS=["2020-21","2021-22","2022-23","2023-24","2024-25"];
+const CURSOS_UAM=["2020-21","2021-22","2022-23","2023-24","2024-25"];
 
-/* ============================ Estado ============================ */
+/* ============================================================
+   UNIVERSIDAD COMPLUTENSE DE MADRID (UCM)
+   Fuente: Convocatoria DOCENTIA-UCM 2025-26 y Guía para la
+   realización del auto-informe del profesor/a (Vicerrectorado
+   de Calidad · Oficina para la Calidad).
+   ============================================================ */
+const DIMS_UCM = {
+  1:{name:"Bloque 1 · Cuestionario cuantitativo de autoevaluación"},
+  2:{name:"Bloque 2 · Cuestionario cualitativo de autoevaluación"},
+  3:{name:"Bloque 3 · Méritos docentes acreditados"}
+};
+
+const UCM_ITEMS = [
+  "Informo de manera clara sobre los objetivos de las asignaturas/prácticas que imparto.",
+  "Informo de manera clara sobre el sistema de evaluación de las asignaturas/prácticas que imparto.",
+  "Informo de manera clara sobre las actividades docentes de las asignaturas/prácticas que imparto (trabajos, seminarios, visitas, trabajos de campo, laboratorios, etc.).",
+  "Soy competente en las materias que explico.",
+  "Organizo y estructuro bien las clases/prácticas.",
+  "Explico de forma clara y comprensible.",
+  "Los materiales que utilizo y/o recomiendo son útiles para cursar las asignaturas/prácticas que imparto (bibliografía, material en Campus Virtual, etc.).",
+  "Resuelvo las dudas y ayudo a los estudiantes cuando lo necesitan.",
+  "El sistema de evaluación de las asignaturas/prácticas que imparto permite al estudiante reflejar los conocimientos y competencias adquiridas.",
+  "Cumplo con el programa de las asignaturas/prácticas que imparto.",
+  "Me muestro accesible con los estudiantes.",
+  "Despierto el interés por las asignaturas/prácticas que imparto.",
+  "Mi labor docente ayuda a adquirir conocimientos y competencias a los estudiantes.",
+  "En mi opinión soy un buen profesor.",
+  "Estoy satisfecho con mi labor docente."
+];
+
+const MODELS_UCM = {
+  U:{name:"Modelo único DOCENTIA-UCM", desc:"DOCENTIA-UCM se aplica a todo el personal docente e investigador, sea cual sea su categoría académica y su dedicación. No hay submodelos por figura.",
+    questions:[
+      Q("A1",1,"Cuestionario cuantitativo de autoevaluación",
+        "Indique de 0 a 10 su grado de acuerdo con las siguientes afirmaciones (siendo 0 = totalmente en desacuerdo y 10 = totalmente de acuerdo).",
+        "scale",{min:0,max:10,items:UCM_ITEMS,
+          help:{v:["No puntúa: no aporta ni resta puntos a la puntuación total. Es un instrumento de reflexión.","Son los mismos 15 ítems que responde tu alumnado, así que permite comparar tu percepción con la suya."],
+                e:["Respóndelo con sinceridad: su utilidad está en detectar dónde tu percepción y la del alumnado se separan.","Debes completarlo antes de que se habilite el cuestionario cualitativo.","Anota las diferencias que encuentres: son la materia prima de las cuatro preguntas del bloque siguiente."]}}),
+      Q("B1",2,"Aspectos destacables de su desempeño docente",
+        "Identifique y comente aspectos destacables o más positivos en su desempeño docente. No olvide tomar en cuenta los resultados obtenidos en las encuestas del estudiantado y los ofrecidos en su autoevaluación.",
+        "textarea",{limit:2500,
+          help:{v:["Que los aspectos destacables estén claramente justificados a partir de un análisis detallado de las encuestas del estudiantado y de tu autoevaluación.","La rúbrica premia la justificación con datos, no la enumeración de virtudes."],
+                e:["Parte de los ítems mejor valorados en las encuestas y de tus puntuaciones más altas del bloque anterior.","Por cada fortaleza: qué haces, qué dato la respalda y qué efecto tiene en el aprendizaje.","Dos o tres fortalezas bien argumentadas valen más que una lista larga."]}}),
+      Q("B2",2,"Aspectos mejorables de su desempeño docente",
+        "Identifique y comente aspectos mejorables en su desempeño docente. No olvide tomar en cuenta los resultados obtenidos en las encuestas del estudiantado y los ofrecidos en su autoevaluación.",
+        "textarea",{limit:2500,
+          help:{v:["Es la pregunta de más peso del autoinforme, junto con la siguiente.","Capacidad de autocrítica apoyada en evidencias, no en impresiones."],
+                e:["Elige los ítems peor valorados o donde más se separan tu percepción y la del alumnado.","Explica a qué atribuyes cada debilidad.","No minimices: reconocer un punto débil y analizarlo puntúa más que negarlo."]}}),
+      Q("B3",2,"Acciones concretas de mejora",
+        "Señale acciones concretas que considera que pueden ser útiles para la mejora de su actividad docente, refiriéndose específicamente a los aspectos señalados como mejorables.",
+        "textarea",{limit:2500,
+          help:{v:["Que cada acción responda a una debilidad que hayas señalado antes.","Concreción: qué, cuándo y cómo comprobarás que ha funcionado."],
+                e:["Empareja cada acción con la debilidad concreta a la que responde.","Haz que sean realizables en el próximo curso, no propósitos generales.","Añade cómo sabrás si ha mejorado (qué indicador mirarás)."]}}),
+      Q("B4",2,"Valoración global y otras observaciones adicionales",
+        "Valoración global y otras observaciones adicionales.",
+        "textarea",{limit:2500,
+          help:{v:["No tiene rúbrica propia de puntuación, pero es donde puedes contextualizar tu docencia."],
+                e:["Circunstancias que condicionaron el periodo (cambios de asignatura, grupos muy grandes, docencia compartida).","Cualquier aspecto que no encaje en las preguntas anteriores."]}}),
+      Q("C1",3,"Proyectos de mejora e innovación docente",
+        "Acredite su participación en proyectos de mejora e innovación docente dentro del periodo establecido en la convocatoria.",
+        "repeater",{cols:[{k:"titulo",l:"Título del proyecto"},{k:"conv",l:"Convocatoria / entidad"},{k:"rol",l:"Rol (director / participante)"},{k:"anio",l:"Año"}],
+          help:{v:["Se valora más haber dirigido al menos un proyecto, o haber participado en dos o más."],
+                e:["En los proyectos Innova-UCM los datos los aporta la Oficina para la Calidad; revisa si ya constan.","Cumplimentar los méritos supone declaración de veracidad: la universidad hace muestreos y pide justificación."]}}),
+      Q("C2",3,"Actividades de formación docente",
+        "Acredite las actividades de formación docente realizadas o impartidas dentro del periodo establecido en la convocatoria.",
+        "repeater",{cols:[{k:"titulo",l:"Denominación de la actividad"},{k:"entidad",l:"Entidad organizadora"},{k:"papel",l:"Como docente / discente"},{k:"horas",l:"Nº de horas"},{k:"anio",l:"Año"}],
+          help:{v:["Las horas son lo que puntúa: hay un salto entre 10-19 horas y 20 horas o más."],
+                e:["Deben dirigirse a la formación para la docencia: se excluyen las de marcado componente investigador o estrictamente disciplinar.","Suma las horas del periodo completo antes de decidir qué incluyes."]}}),
+      Q("C3",3,"Congresos, jornadas o seminarios sobre docencia universitaria",
+        "Acredite su participación en congresos, jornadas o seminarios sobre docencia universitaria y/o innovación docente.",
+        "repeater",{cols:[{k:"evento",l:"Congreso / jornada / seminario"},{k:"trabajo",l:"Título del trabajo presentado (si procede)"},{k:"tipo",l:"Presentación de trabajo / asistencia"},{k:"anio",l:"Año"}],
+          help:{v:["Presentar un trabajo (póster, comunicación o ponencia) puntúa más que asistir."],
+                e:["Deben ser de carácter didáctico, no de tu disciplina.","Distingue con claridad presentación y asistencia: son tramos distintos."]}}),
+      Q("C4",3,"Publicaciones docentes",
+        "Acredite la autoría de publicaciones docentes dentro del periodo establecido en la convocatoria.",
+        "repeater",{cols:[{k:"tipo",l:"Tipo (libro / artículo / capítulo / ponencia)"},{k:"titulo",l:"Título"},{k:"ref",l:"ISBN / ISSN / DOI"},{k:"autores",l:"Nº de autores"},{k:"anio",l:"Año"}],
+          help:{v:["Libro y artículo puntúan por encima de capítulo, y este por encima de ponencia o comunicación completa."],
+                e:["Incluye materiales didácticos con ISBN o ISSN, en papel o en soporte electrónico.","Comprueba que la fecha de publicación cae dentro del periodo de la convocatoria."]}})
+    ]}
+};
+
+/* ============================================================
+   UNIVERSIDAD DE ALCALÁ (UAH)
+   Fuente: Manual PEAD-DOCENTIA v11 (Consejo de Gobierno,
+   11/12/2025) y Guía de Ayuda para la cumplimentación del
+   Autoinforme.
+   ============================================================ */
+const DIMS_UAH = {
+  1:{name:"Dimensión 1 · Responsabilidad Docente"},
+  2:{name:"Dimensión 2 · Desempeño docente"},
+  3:{name:"Dimensión 3 · Desarrollo profesional docente"}
+};
+
+const LIM_UAH = 5000;
+
+const QDEF_UAH = [
+  Q("P01",1,"Encargo docente",
+    "Contextualice su labor docente a partir de los datos de sus Hojas Académicas.",
+    "textarea",{limit:LIM_UAH,
+      help:{v:["Cuatro puntos proceden de los datos de la hoja académica y otros cuatro de sus explicaciones: lo que usted escribe pesa tanto como el dato.","Que el encargo quede explicado, no solo enumerado."],
+            e:["a) Número de grupos: explique la distribución y cómo afecta a su docencia.","b) Tamaño de los grupos: ponga ejemplos y diga cómo condiciona su enseñanza.","c) Docencia compartida o exclusiva: detalle cómo le afecta.","d) Tribunales de TFG/TFM: número y repercusión en su labor docente.","e) Capacidad docente: cualquier consideración necesaria para interpretar sus datos."]}}),
+  Q("P02",1,"Otras actividades de mejora de la docencia",
+    "Describa su participación en actividades de difusión de la docencia y de promoción institucional de la UAH.",
+    "textarea",{limit:LIM_UAH,
+      help:{v:["Se exige evidencia cuando la actividad no consta en las hojas académicas."],
+            e:["Actividades valorables: Descubre la UAH, Jornadas de Puertas Abiertas, Open Day, talleres, jornadas de orientación para pruebas de acceso, charlas divulgativas, webinars y podcasts, olimpiadas y certámenes, Noche Europea de los Investigadores, cursos cero o de refuerzo, conferencias en otras universidades, actividades de internacionalización.","Indique en cada caso el curso y adjunte la evidencia si no figura en su hoja académica."]}}),
+  Q("P03",1,"Tutorías",
+    "Explique cómo realiza el asesoramiento y la tutoría de su alumnado.",
+    "textarea",{limit:LIM_UAH,
+      help:{v:["Para la máxima puntuación hay que detallar al menos dos formas de tutorización."],
+            e:["Describa dos modalidades distintas (presencial, virtual, por cita, a demanda…).","Indique herramientas, si es individual o grupal, y con qué frecuencia.","Añada qué consigue con cada modalidad."]}}),
+  Q("P04",2,"Planificación: revisión y mejora de las guías docentes",
+    "Describa cómo revisa y mejora las guías docentes de sus asignaturas.",
+    "textarea",{limit:LIM_UAH,
+      help:{v:["La máxima puntuación exige motivar adecuadamente los cambios e indicar qué parámetros los generaron."],
+            e:["No basta con decir que revisa: diga qué cambió y por qué.","Nombre el dato o la señal que provocó el cambio (resultados, encuestas, coordinación, cambios normativos).","Cierre con el efecto observado."]}}),
+  Q("P05a",2,"Funciones de coordinación con responsabilidad directa",
+    "Describa las funciones de coordinación que ejerce con responsabilidad directa.",
+    "textarea",{limit:LIM_UAH,
+      help:{v:["No se acepta la mera enumeración de cargos: hay que argumentar y evidenciar cómo se ejercen.","Para la máxima puntuación se esperan dos cargos de coordinación desarrollados."],
+            e:["Por cada cargo: qué hace realmente en él, con quién se coordina y con qué periodicidad.","Aporte un resultado concreto de esa coordinación."]}}),
+  Q("P05b",2,"Actividades de coordinación sin responsabilidad directa",
+    "Describa las actividades de coordinación en las que participa sin ostentar responsabilidad directa, señalando su aportación.",
+    "textarea",{limit:LIM_UAH,
+      help:{v:["Lo que se valora es la aportación realizada, no la asistencia."],
+            e:["Reuniones de asignatura, de curso, de titulación, comisiones docentes.","Diga qué aportó usted en concreto y qué se decidió a partir de ahí."]}}),
+  Q("P06",2,"Elaboración de materiales didácticos (tabla)",
+    "Relacione los materiales didácticos que ha elaborado durante el periodo evaluado.",
+    "repeater",{cols:[{k:"tipo",l:"Tipo y título del material"},{k:"clave",l:"Clave"},{k:"anio",l:"Año de creación / revisión"},{k:"asig",l:"Asignaturas y grupos"},{k:"elab",l:"Elaboración (individual / colectiva)"}],
+      help:{v:["Debe haber correspondencia exacta entre la evidencia anexada y la denominación de la tabla."],
+            e:["No declare el mismo material como material docente y como publicación de innovación.","Máximo una presentación por asignatura, salvo que tengan matices claramente distintos.","No declare el mismo material a la vez en papel y en electrónico.","En páginas web, indique el mérito concreto.","Nombre las evidencias como P06_1, P06_2… según el esquema de la Guía."]}}),
+  Q("P06d",2,"Materiales didácticos: explicaciones adicionales",
+    "Añada las explicaciones que considere necesarias sobre los materiales aportados (corresponde al anexo P06_0).",
+    "textarea",{limit:LIM_UAH}),
+  Q("P07",2,"Metodología y secuenciación",
+    "Describa los procedimientos que emplea para adecuar la docencia a las características de sus grupos.",
+    "textarea",{limit:LIM_UAH,
+      help:{v:["Que la adaptación esté basada en información recogida, no en intuición."],
+            e:["Cómo evalúa conocimientos previos, intereses y habilidades del grupo.","Qué reordena después: temario, contenidos, actividades, ritmo.","Un ejemplo concreto de un curso en que cambió la secuenciación y por qué."]}}),
+  Q("P08",2,"Estrategias metodológicas y recursos didácticos",
+    "Describa las estrategias metodológicas que emplea y los recursos didácticos asociados.",
+    "textarea",{limit:LIM_UAH,
+      help:{v:["Es el apartado de más peso del autoinforme.","La máxima puntuación exige explicar dos estrategias, indicar los recursos, justificar su conveniencia y mostrar la adquisición de competencias."],
+            e:["Elija dos estrategias y desarrolle cada una por separado.","Por cada una: en qué consiste, con qué recursos, por qué es la adecuada para esa materia y qué competencias adquiere el estudiante.","Nombre las evidencias como P08_1, P08_2…"]}}),
+  Q("P09",2,"Agentes e instrumentos de evaluación",
+    "Describa los agentes y los instrumentos de evaluación que utiliza y su idoneidad.",
+    "textarea",{limit:LIM_UAH,
+      help:{v:["Para la máxima puntuación se esperan dos criterios de evaluación desarrollados.","Que los instrumentos sean idóneos para las competencias que se evalúan."],
+            e:["Agentes posibles: el docente, la autoevaluación del estudiante, la evaluación entre pares.","Instrumentos: rúbricas, pruebas prácticas, portafolios, observación estructurada, casos.","Justifique por qué cada instrumento mide bien esa competencia."]}}),
+  Q("P10",2,"Resultados del aprendizaje",
+    "Explique cómo analiza los resultados del aprendizaje con sus estudiantes y qué retroalimentación les ofrece.",
+    "textarea",{limit:LIM_UAH,
+      help:{v:["Aviso explícito de la Guía: no se alcanza la máxima puntuación solo con la revisión de exámenes obligatoria."],
+            e:["Describa lo que hace además de la revisión reglamentaria.","Cuándo devuelve resultados, en qué formato y qué hace el estudiante con esa información."]}}),
+  Q("P11",2,"Análisis de la práctica docente",
+    "Describa cómo analiza su práctica docente durante el curso y las consecuencias en su planificación futura.",
+    "textarea",{limit:LIM_UAH,
+      help:{v:["Que el análisis sea durante el curso, no solo al final."],
+            e:["Qué cuestiones se plantea y con qué periodicidad.","Qué información recoge para responderlas.","Un cambio concreto que introdujo en la planificación del curso siguiente."]}}),
+  Q("P12a",3,"Formación y actualización docente (tabla)",
+    "Relacione las actividades de formación docente y de actualización en su ámbito de conocimiento.",
+    "repeater",{cols:[{k:"titulo",l:"Título de la actividad"},{k:"entidad",l:"Entidad organizadora"},{k:"fecha",l:"Fecha"},{k:"dur",l:"Duración (horas / créditos)"}],
+      help:{v:["La parte cuantitativa satura pronto: los cursos de formación en docencia pesan más que los de actualización disciplinar."],
+            e:["Separe con claridad formación para la docencia y actualización en su ámbito de conocimiento.","Incluya las impartidas por la UAH y las externas."]}}),
+  Q("P12aq",3,"Formación y actualización docente: impacto",
+    "Describa cómo ha implementado lo aprendido, qué impacto ha tenido en su docencia y cómo ha verificado la mejora.",
+    "textarea",{limit:LIM_UAH,
+      help:{v:["La parte cualitativa exige las tres cosas: implementación, impacto y verificación."],
+            e:["Formación recibida → cambio introducido → cómo comprobó que mejoró.","Elija dos o tres formaciones que de verdad cambiaron algo."]}}),
+  Q("P12b",3,"Innovación e investigación docente (tabla)",
+    "Relacione los grupos y proyectos de innovación docente en los que ha participado.",
+    "repeater",{cols:[{k:"tipo",l:"Tipo (grupo UAH / grupo externo / proyecto / otra actividad)"},{k:"nombre",l:"Denominación"},{k:"rol",l:"Rol"},{k:"periodo",l:"Periodo"}],
+      help:{v:["En los grupos de innovación de la UAH se exige un mínimo de dos años de actividad."],
+            e:["Distinga grupos UAH, grupos externos, proyectos y otras actividades: puntúan en tramos separados."]}}),
+  Q("P12bq",3,"Innovación e investigación docente: impacto",
+    "Describa la actividad innovadora, su impacto en la docencia y cómo ha verificado la mejora.",
+    "textarea",{limit:LIM_UAH,
+      help:{v:["Se valora el impacto verificado, no la participación en sí."],
+            e:["Qué problema docente quería resolver.","Qué cambió en el aula y qué resultado observó.","Cómo lo comprobó (indicadores, resultados, opiniones recogidas)."]}}),
+  Q("P12c",3,"Otros méritos",
+    "Relacione otros méritos: comisiones evaluadoras de docencia o innovación, distinciones y premios, e impartición de cursos o talleres de formación.",
+    "repeater",{cols:[{k:"tipo",l:"Tipo (comisión / premio / curso impartido)"},{k:"denom",l:"Denominación"},{k:"entidad",l:"Entidad"},{k:"anio",l:"Año"}]}),
+  Q("PANX",3,"Observaciones y evidencias complementarias",
+    "Recuadro final para observaciones sobre la documentación asociada: anomalías en las hojas académicas, incidencias con las encuestas docentes, cuestiones no reflejadas en los informes de responsables académicos y evidencias complementarias.",
+    "textarea",{limit:LIM_UAH})
+];
+
+const MODELS_UAH = {
+  GEN:{name:"Profesorado general (Anexo IVa)", desc:"Baremo general del PEAD-DOCENTIA-UAH. Es el que se aplica a la mayoría del profesorado, a tiempo completo o parcial.",
+    questions:QDEF_UAH},
+  CCSS:{name:"Asociado de Ciencias de la Salud (Anexo IVb)", desc:"Profesorado asociado de Ciencias de la Salud. Mismas preguntas, pero con un baremo propio: menos peso de la dedicación y mucho más de los materiales elaborados y de la orientación de la práctica clínica.",
+    questions:QDEF_UAH}
+};
+
+/* ============================================================
+   UNIVERSIDAD REY JUAN CARLOS (URJC)
+   Fuente: Manual de Evaluación de la Actividad Docente
+   DOCENTIA-URJC y Anexo I (Baremo detallado). Estructura
+   contrastada con las bases de la convocatoria vigente.
+   ============================================================ */
+const DIMS_URJC = {
+  1:{name:"Dimensión 1 · Responsabilidad docente"},
+  2:{name:"Dimensión 2 · Planificación y organización de la docencia"},
+  3:{name:"Dimensión 3 · Desarrollo de la docencia y evaluación del aprendizaje"},
+  4:{name:"Dimensión 4 · Formación, actualización e innovación docente"}
+};
+
+const COLS_URJC = {
+  comision:[{k:"nombre",l:"Denominación de la comisión"},{k:"ambito",l:"Departamento / Facultad o Escuela"},{k:"periodo",l:"Periodo"}],
+  actividad:[{k:"tipo",l:"Tipo de actividad"},{k:"denom",l:"Denominación"},{k:"entidad",l:"Entidad organizadora"},{k:"curso",l:"Curso"},{k:"horas",l:"Horas"}],
+  material:[{k:"tipo",l:"Tipo (libro, cuaderno de prácticas, aplicación, web, simulación…)"},{k:"titulo",l:"Título"},{k:"anio",l:"Año de creación / revisión"},{k:"autores",l:"Nº de autores"},{k:"abierto",l:"¿Publicado en abierto? (sí/no)"}],
+  publicacion:[{k:"tipo",l:"Tipo de publicación"},{k:"titulo",l:"Título"},{k:"anio",l:"Año"},{k:"autores",l:"Nº de autores"}],
+  formacion:[{k:"denom",l:"Denominación de la actividad"},{k:"entidad",l:"Entidad organizadora"},{k:"curso",l:"Curso"},{k:"horas",l:"Horas"}],
+  innovacion:[{k:"nombre",l:"Denominación del proyecto o grupo"},{k:"rol",l:"Rol"},{k:"conv",l:"Convocatoria / financiación"},{k:"periodo",l:"Periodo"}],
+  difusion:[{k:"tipo",l:"Tipo (comunicación, ponencia, jurado, premio)"},{k:"titulo",l:"Título o denominación"},{k:"evento",l:"Evento o entidad"},{k:"anio",l:"Año"}],
+  trabajos:[{k:"tipo",l:"Tipo (TFM / tesis)"},{k:"titulo",l:"Título"},{k:"inst",l:"Institución"},{k:"anio",l:"Año de defensa"}]
+};
+
+const RUB4 = (a,b,c,d)=>[{v:a},{v:b},{v:c},{v:d}];
+
+const QDEF_URJC = [
+  Q("P1212",1,"Cumplimiento de plazos administrativos",
+    "Valore su cumplimiento de los plazos en los procedimientos administrativos de evaluación académica.",
+    "rubric",{opts:RUB4("No cumple habitualmente los plazos","En alguna ocasión no ha cumplido algún plazo","Cumple habitualmente los plazos","Cumple estrictamente los plazos")}),
+  Q("P1213",1,"Difusión de la guía docente",
+    "Valore cómo difunde la guía docente entre su alumnado.",
+    "rubric",{opts:RUB4("No difunde la guía docente","Indica a los estudiantes dónde está disponible","La publica y la explica brevemente","La publica y la explica detalladamente")}),
+  Q("PEE1213",1,"Ejemplos de difusión de la guía docente",
+    "Seleccione dos ejemplos de difusión de la guía docente.",
+    "examples",{n:2,fields:[{k:"a",l:"a) En qué ha consistido la difusión",limit:1500},{k:"b",l:"b) Cómo mejora el conocimiento de la asignatura por parte de los estudiantes",limit:1500}]}),
+  Q("P1214",1,"Cumplimiento del horario",
+    "Valore su cumplimiento del horario docente.",
+    "rubric",{opts:RUB4("No cumple el horario","No asiste a alguna clase y/o hay retrasos","Asiste siempre; excepcionalmente alguna falta justificada","Asiste siempre y puntualmente")}),
+  Q("P1215",1,"Asesoramiento, tutoría y orientación",
+    "Valore su dedicación al asesoramiento, la tutoría y la orientación del alumnado.",
+    "rubric",{opts:RUB4("No atiende tutorías","Atiende tutorías solo en ocasiones","Atiende tutorías y realiza asesoramiento; habitualmente disponible","Atiende siempre las tutorías y está siempre disponible")}),
+  Q("1311",1,"Comisiones de Departamento de carácter docente",
+    "Relacione las comisiones de su Departamento, de carácter docente, en las que ha participado.",
+    "repeater",{cols:COLS_URJC.comision}),
+  Q("1312",1,"Comisiones de Facultad o Escuela de carácter docente",
+    "Relacione las comisiones de Facultad o Escuela, de carácter docente, en las que ha participado.",
+    "repeater",{cols:COLS_URJC.comision}),
+  Q("1315",1,"Otras actividades en beneficio de la docencia y los estudiantes",
+    "Relacione otras actividades realizadas en beneficio de la docencia y de los estudiantes.",
+    "repeater",{cols:COLS_URJC.actividad,
+      help:{v:["Cuentan actividades de proyección y acompañamiento, no solo docencia reglada."],
+            e:["Ejemplos citados por el baremo: ferias educativas, jornadas de acogida, actividades de divulgación, concursos con estudiantes, actos de graduación."]}}),
+  Q("1317",1,"TFM y tesis dirigidas en otras instituciones",
+    "Relacione los TFM y tesis doctorales que haya dirigido en instituciones distintas de la URJC (los de la URJC se cargan automáticamente).",
+    "repeater",{cols:COLS_URJC.trabajos}),
+  Q("PEE2111",2,"Ejemplos de actualización de guías docentes",
+    "Seleccione ejemplos de asignaturas en las que haya participado en la actualización de la guía docente.",
+    "examples",{n:4,fields:[{k:"asig",l:"Asignatura",limit:150},{k:"a",l:"a) En qué ha consistido su participación",limit:1500},{k:"b",l:"b) Cómo ha influido en la planificación con sus grupos",limit:1500}],
+      help:{v:["Cada ejemplo puntúa por separado: la participación y su influencia en la planificación."],
+            e:["Ojo: el baremo detallado pide cuatro ejemplos y una versión posterior del manual habla de dos. Comprueba cuántos admite la convocatoria vigente antes de redactarlos todos."]}}),
+  Q("P2211",2,"Revisión y actualización de contenidos",
+    "Valore con qué frecuencia y profundidad revisa y actualiza los contenidos de sus asignaturas.",
+    "rubric",{opts:RUB4("No revisa ni actualiza los contenidos","Revisa o actualiza ocasionalmente","Revisa y actualiza habitualmente","Revisa y actualiza anualmente y comprueba la facilidad de aprendizaje")}),
+  Q("PEE2211",2,"Ejemplos de revisión de contenidos",
+    "Seleccione dos ejemplos de revisión o actualización de contenidos.",
+    "examples",{n:2,fields:[{k:"a",l:"a) Qué motivó los cambios y en qué consistieron",limit:1500},{k:"b",l:"b) Qué resultados tuvo en el aprendizaje",limit:1500}]}),
+  Q("P2212",2,"Coordinación con otros docentes",
+    "Valore su coordinación con otros docentes.",
+    "rubric",{opts:RUB4("No realiza coordinación","Se coordina esporádicamente","Se coordina habitualmente","Se coordina habitualmente e influye en la organización de la asignatura")}),
+  Q("PEE2212",2,"Ejemplos de coordinación docente",
+    "Seleccione dos ejemplos de coordinación con otros docentes.",
+    "examples",{n:2,fields:[{k:"a",l:"a) Cómo realiza la coordinación",limit:1500},{k:"b",l:"b) Cómo influyó en la organización de la asignatura",limit:1500}]}),
+  Q("3111",3,"Metodologías docentes empleadas",
+    "Señale las metodologías docentes que emplea habitualmente.",
+    "multi",{opts:["Clases expositivas","Resolución de problemas","Prácticas de laboratorio","Diseño de proyectos","Estudio de casos","Trabajos grupales","Proyectos de investigación o innovación","Exposiciones de estudiantes","Seminarios","Salidas de campo","Otras"],
+      help:{v:["Se valora la diversidad y la adecuación de las metodologías, no acumularlas."],
+            e:["Marque solo las que emplea de forma habitual y pueda justificar después en los ejemplos."]}}),
+  Q("PEE3111",3,"Ejemplos de metodologías docentes",
+    "Seleccione dos metodologías y desarrolle su aplicación.",
+    "examples",{n:2,fields:[{k:"asig",l:"a) Asignatura",limit:150},{k:"b",l:"b) Motivación para incorporar la metodología",limit:1500},{k:"c",l:"c) Resultados obtenidos",limit:1500}]}),
+  Q("PEE3112",3,"Ejemplos de uso del Aula Virtual",
+    "Seleccione dos asignaturas en las que emplee el Aula Virtual u otras aplicaciones educativas institucionales.",
+    "examples",{n:2,fields:[{k:"asig",l:"Asignatura",limit:150},{k:"a",l:"a) Cómo los utiliza",limit:1500},{k:"b",l:"b) Qué resultados tiene",limit:1500}]}),
+  Q("312",3,"Otras actividades docentes",
+    "Relacione otras actividades docentes: extensión universitaria, formación docente dirigida o impartida, seminarios y cursos complementarios, enseñanzas propias, docencia invitada y movilidad STA, premios docentes y participación como revisor o evaluador.",
+    "repeater",{cols:COLS_URJC.actividad,
+      help:{e:["La docencia como profesor invitado y la movilidad STA-Erasmus+ puntúan en un tramo propio: identifíquelas con claridad en el tipo de actividad."]}}),
+  Q("3131",3,"Materiales docentes y recursos TIC",
+    "Relacione los materiales docentes y recursos TIC que ha producido.",
+    "repeater",{cols:COLS_URJC.material}),
+  Q("PEE3131",3,"Ejemplos de materiales docentes",
+    "Seleccione tres ejemplos de materiales docentes o recursos TIC.",
+    "examples",{n:3,fields:[{k:"mat",l:"Material",limit:150},{k:"a",l:"a) Cómo lo utiliza",limit:1500},{k:"b",l:"b) Qué resultados tiene",limit:1500}]}),
+  Q("3133",3,"Publicaciones de carácter docente",
+    "Relacione sus publicaciones de carácter docente.",
+    "repeater",{cols:COLS_URJC.publicacion}),
+  Q("PEE3132",3,"Ejemplos de publicaciones docentes",
+    "Seleccione dos ejemplos de publicaciones docentes.",
+    "examples",{n:2,fields:[{k:"pub",l:"Publicación",limit:150},{k:"a",l:"a) Concepto clave que aporta",limit:1500},{k:"b",l:"b) Cómo incide su difusión",limit:1500}]}),
+  Q("P3211",3,"Revisión del sistema de evaluación",
+    "Valore con qué frecuencia revisa el sistema de evaluación de sus asignaturas.",
+    "rubric",{opts:RUB4("No revisa el sistema de evaluación","Lo revisa ocasionalmente","Lo revisa habitualmente","Lo revisa anualmente")}),
+  Q("PEE3211",3,"Ejemplos de revisión del sistema de evaluación",
+    "Seleccione dos ejemplos de asignaturas en las que haya revisado el sistema de evaluación.",
+    "examples",{n:2,fields:[{k:"asig",l:"Asignatura",limit:150},{k:"a",l:"a) Qué motivó la revisión",limit:1500},{k:"b",l:"b) Qué resultados considera que ha tenido",limit:1500}]}),
+  Q("4112",4,"Otras actividades formativas de formación e innovación docente",
+    "Relacione las actividades formativas orientadas a la formación e innovación docente, de la URJC o externas, distintas del Plan de Formación del PDI.",
+    "repeater",{cols:COLS_URJC.formacion,
+      help:{v:["Las horas son lo que puntúa."],
+            e:["La formación del Plan de Formación del PDI de la URJC se carga automáticamente: no la repita aquí."]}}),
+  Q("4113",4,"Jornadas, seminarios y congresos de formación e innovación docente",
+    "Relacione su asistencia a jornadas, seminarios, encuentros y congresos de formación e innovación docente.",
+    "repeater",{cols:COLS_URJC.formacion}),
+  Q("4114",4,"Actividades relacionadas con los conocimientos impartidos",
+    "Relacione las actividades de actualización relacionadas con los conocimientos que imparte.",
+    "repeater",{cols:COLS_URJC.formacion}),
+  Q("PEE4114",4,"Ejemplos de aplicabilidad de la formación recibida",
+    "Seleccione dos actividades formativas y explique su aplicación docente.",
+    "examples",{n:2,fields:[{k:"act",l:"Actividad formativa",limit:150},{k:"a",l:"a) Qué aplicación ha tenido en su docencia",limit:1500},{k:"b",l:"b) Si ha mejorado algún elemento y cuál",limit:1500}]}),
+  Q("421",4,"Proyectos y grupos de innovación docente",
+    "Relacione los proyectos, grupos, centros o planes de innovación docente en los que ha participado.",
+    "repeater",{cols:COLS_URJC.innovacion}),
+  Q("422",4,"Difusión y reconocimiento de la innovación docente",
+    "Relacione comunicaciones y ponencias de innovación docente, participación en jurados de premios y reconocimientos obtenidos.",
+    "repeater",{cols:COLS_URJC.difusion}),
+  Q("PEE4213",4,"Ejemplos de aplicabilidad de la innovación docente",
+    "Seleccione dos asignaturas en las que haya aplicado la innovación docente.",
+    "examples",{n:2,fields:[{k:"asig",l:"Asignatura",limit:150},{k:"a",l:"a) Qué aplicación ha tenido",limit:1500},{k:"b",l:"b) Si ha mejorado algún elemento y cuál",limit:1500}]})
+];
+
+const Q_URJC_ASOC = Q("PEE111A",1,"Vinculación de la docencia con su actividad profesional (solo profesorado asociado)",
+  "Si las asignaturas que ha impartido como profesor asociado están relacionadas directamente con su actividad principal en el ámbito profesional, desarrolle dos ejemplos.",
+  "examples",{n:2,fields:[{k:"asig",l:"Asignatura",limit:150},{k:"a",l:"a) Relación con su actividad profesional principal",limit:1500},{k:"b",l:"b) Qué aporta esa experiencia a la docencia de la asignatura",limit:1500}],
+    help:{v:["La comisión puede incrementar hasta un punto por esta vinculación."],
+          e:["Concrete la relación: qué hace en su puesto y qué contenido de la asignatura cubre esa experiencia.","Aporte ejemplos de casos o materiales reales llevados al aula."]}});
+
+const MODELS_URJC = {
+  CONS:{name:"Profesorado consolidado", desc:"Profesorado con más de cuatro cursos de experiencia docente. Las preguntas son las mismas que en la etapa novel; cambian los umbrales del Índice de Esfuerzo Docente.",
+    questions:QDEF_URJC},
+  NOV:{name:"Profesorado novel", desc:"Ayudante, Ayudante Doctor, figuras de investigación (FPI, FPU, Ramón y Cajal, Juan de la Cierva, atracción de talento) y profesorado con cuatro cursos o menos de experiencia.",
+    questions:QDEF_URJC},
+  ASOC:{name:"Profesorado asociado", desc:"Incluye la pregunta adicional sobre la vinculación entre las asignaturas impartidas y su actividad profesional principal.",
+    questions:[Q_URJC_ASOC].concat(QDEF_URJC)}
+};
+
+/* ============================================================
+   Guías específicas de perfil clínico
+   ============================================================ */
+MODELS_UAM.AV.guide = {
+  title:"Preparas tu informe como Ciencias de la Salud",
+  intro:"Consejos adaptados a la docencia clínica y hospitalaria, dimensión por dimensión.",
+  label:"Guía para el perfil clínico (AV.CC.SS)",
+  sections:[
+    {t:"Tu contexto es asistencial", c:"Como Asociado de Ciencias de la Salud o Vinculado, tu docencia se desarrolla sobre todo en la Unidad Docente del hospital: prácticas clínicas, rotaciones, sesiones clínicas y docencia a pie de cama. Redacta situando tu enseñanza en ese entorno real. Recuerda el requisito mínimo de 6 horas de docencia por curso."},
+    {t:"P13 · Evaluación Clínica (ECOE)", c:"Es la pregunta propia de tu perfil. Indica con claridad si participaste en el diseño de la prueba y/o si apoyaste el día de su realización, y describe brevemente tu papel (estaciones, evaluación de estudiantes, elaboración de casos)."},
+    {t:"Buenas prácticas clínicas (P15)", c:"Apóyate en metodologías propias de Ciencias de la Salud: aprendizaje basado en casos/pacientes, simulación clínica, pacientes estandarizados, MiniCEX, bedside teaching, role-play de la relación clínica. Elige la que mejor evidencie tu mejor práctica."},
+    {t:"Evaluación y feedback (P16–P17)", c:"Menciona rúbricas de competencias clínicas, evaluación de habilidades y el feedback estructurado tras la rotación o la práctica (por ejemplo, modelo Pendleton o feedback en tiempo real). Para el feedback cualitativo debes adjuntar evidencia; si es oral a pie de cama, aporta un documento que describa cómo lo desarrollas."},
+    {t:"Análisis de tu docencia (P18–P19)", c:"Como fuentes, valen la percepción del estudiantado en prácticas, las opiniones de la Unidad Docente/servicio y los resultados de la ECOE. Adjunta un documento propio de análisis, no solo informes de encuestas."},
+    {t:"Materiales (P20–P21)", c:"Buenos materiales clínicos: guías de prácticas y de rotación, checklists de habilidades, casos clínicos, vídeos de procedimientos, material de simulación. Hasta cinco; en Moodle recuerda incluir el número del curso."},
+    {t:"Quién te valora", c:"Además de la dirección de tu departamento, puede aportar valoración cualitativa quien coordina tu Unidad Docente en el Hospital. Escribe pensando también en ese lector."}
+  ]
+};
+
+MODELS_UAH.CCSS.guide = {
+  title:"Preparas tu informe con el baremo de Ciencias de la Salud",
+  intro:"El Anexo IVb reparte los puntos de otra manera. Estas son las consecuencias prácticas al redactar.",
+  label:"Guía para el perfil clínico (Anexo IVb)",
+  sections:[
+    {t:"Tu dedicación pesa menos", c:"En el baremo de Ciencias de la Salud la dedicación docente vale bastante menos que en el general. No dediques el grueso del esfuerzo a justificar el encargo (P01): concéntralo donde el baremo te da más margen."},
+    {t:"Los materiales suben mucho de peso", c:"La elaboración de materiales didácticos (P06) es el apartado que más gana en este baremo. Merece la pena documentar bien la tabla y las evidencias: guías de prácticas y de rotación, checklists de habilidades clínicas, casos, vídeos de procedimientos, material de simulación."},
+    {t:"La orientación de la práctica tiene peso propio", c:"El Anexo IVb valora específicamente cómo orientas al estudiante en la práctica clínica. Llévalo a P07, P08 y P03: cómo recibes al estudiante en la rotación, qué le explicas al principio, cómo le acompañas y qué autonomía le das."},
+    {t:"Disponibilidad y resolución de dudas", c:"En las encuestas de este perfil pesan más la atención personalizada y la resolución de dudas. En P03 (tutorías) describe cómo estás disponible en el entorno asistencial, que no funciona como el horario de tutorías de una facultad."},
+    {t:"Estrategias propias de la clínica (P08)", c:"Aprendizaje basado en casos y pacientes, simulación, pacientes estandarizados, MiniCEX, bedside teaching, sesiones clínicas. Desarrolla dos de ellas, con sus recursos y las competencias que adquiere el estudiante."},
+    {t:"Evaluación de competencias clínicas (P09)", c:"Rúbricas de habilidades, observación estructurada, evaluación en la rotación, ECOE. Señala agentes (tú, el propio estudiante, los compañeros, el personal del servicio) y justifica por qué cada instrumento es idóneo."},
+    {t:"Trabajo en equipo e implicación", c:"El fomento de la implicación y del trabajo en equipo tiene peso propio en este baremo. Si tu docencia es en sesiones, pases de planta o trabajo con el equipo asistencial, hazlo explícito."}
+  ]
+};
+
+/* ============================================================
+   Registro de universidades
+   ============================================================ */
+const UNIS = {
+  UAM:{
+    name:"Universidad Autónoma de Madrid",
+    short:"DOCENTIA-UAM",
+    sub:"Universidad Autónoma de Madrid · Programa DOCENTIA-UAM",
+    oficial:"https://www.uam.es/uam/uce/programa-docentia",
+    fuente:"Estructura basada en el Manual y las Bases de la convocatoria vigente del Programa DOCENTIA-UAM.",
+    intro:"Esta herramienta te guía por las preguntas de reflexión del Informe Docente, con ayudas sobre qué valora la comisión, y genera un borrador en Word que podrás revisar y copiar en la plataforma oficial. Elige tu submodelo de participación para empezar.",
+    dims:DIMS_UAM, models:MODELS_UAM,
+    metaHint:"Cursos elegidos (p. ej. 2022-23, 2023-24, 2024-25)",
+    asignaturasLabel:"Asignaturas representativas elegidas (mín. 3, una obligatoria si procede)"
+  },
+  UCM:{
+    name:"Universidad Complutense de Madrid",
+    short:"DOCENTIA-UCM",
+    sub:"Universidad Complutense de Madrid · Programa DOCENTIA-UCM",
+    oficial:"https://www.ucm.es/opc/docentia-ucm",
+    fuente:"Estructura basada en la Convocatoria DOCENTIA-UCM y en la Guía para la realización del auto-informe del profesor/a.",
+    intro:"El autoinforme de la UCM tiene tres partes: un cuestionario cuantitativo de 15 afirmaciones, cuatro preguntas abiertas de 2.500 caracteres y las tablas de méritos docentes. Esta herramienta te permite prepararlas fuera de la plataforma y generar un borrador en Word.",
+    aviso:"<b>Antes de empezar:</b> el cuestionario cualitativo solo se habilita en la plataforma oficial cuando has completado el cuantitativo; aquí puedes prepararlos en cualquier orden. Ten en cuenta también que <b>el profesorado asociado de Ciencias de la Salud de los hospitales universitarios está excluido de la evaluación obligatoria</b>, aunque puede optar por participar si cumple el mínimo de créditos impartidos en el periodo. Las columnas de las tablas de méritos son orientativas: la plataforma puede pedir campos algo distintos.",
+    dims:DIMS_UCM, models:MODELS_UCM,
+    metaHint:"Cursos evaluados (los tres del periodo de la convocatoria)",
+    asignaturasLabel:"Asignaturas impartidas en el periodo evaluado"
+  },
+  UAH:{
+    name:"Universidad de Alcalá",
+    short:"PEAD-DOCENTIA-UAH",
+    sub:"Universidad de Alcalá · Programa de Evaluación de la Actividad Docente (PEAD-DOCENTIA)",
+    oficial:"https://gestioncalidad.uah.es/es/calidad-del-profesorado/programa-de-evaluacion-de-la-actividad-docente-del-profesorado-docentia/",
+    fuente:"Estructura basada en el Manual PEAD-DOCENTIA (versión 11) y en la Guía de Ayuda para la cumplimentación del Autoinforme.",
+    intro:"El autoinforme de la UAH se organiza en tres dimensiones y veinte apartados (P01 a P12c), con un límite de 5.000 caracteres por recuadro. Elige el baremo que te corresponde para empezar.",
+    aviso:"<b>Los enunciados de esta herramienta son una reconstrucción</b> a partir de la Guía de Ayuda oficial: el texto literal de cada apartado solo aparece en la aplicación de la intranet de la UAH. El contenido que se te pide en cada uno sí está contrastado. Recuerda nombrar tus evidencias con el esquema oficial (P06_1, P08_1…).",
+    dims:DIMS_UAH, models:MODELS_UAH,
+    metaHint:"Cursos evaluados (el periodo son cinco cursos académicos)",
+    asignaturasLabel:"Asignaturas impartidas en el periodo evaluado"
+  },
+  URJC:{
+    name:"Universidad Rey Juan Carlos",
+    short:"DOCENTIA-URJC",
+    sub:"Universidad Rey Juan Carlos · Programa DOCENTIA-URJC",
+    oficial:"https://www.urjc.es/universidad/calidad/4053-docentia",
+    fuente:"Estructura basada en el Manual de Evaluación de la Actividad Docente DOCENTIA-URJC y en su Anexo I (baremo detallado).",
+    intro:"En la URJC buena parte del expediente se carga automáticamente desde las bases de datos de la universidad. Lo que realmente redactas son las autovaloraciones, las preguntas de ejemplos y las tablas de méritos: eso es lo que prepara esta herramienta.",
+    aviso:"<b>Aquí solo aparece lo que rellenas tú.</b> La dedicación docente, las tasas de presentación y éxito, la satisfacción de las encuestas y los cargos se cargan solos en la aplicación oficial. <b>Los literales proceden del baremo detallado publicado</b>; el manual de la convocatoria más reciente no está accesible en abierto, así que comprueba en las bases vigentes el número de ejemplos admitidos en cada pregunta y las ponderaciones.",
+    dims:DIMS_URJC, models:MODELS_URJC,
+    metaHint:"Cursos evaluados (el periodo ordinario son tres cursos)",
+    asignaturasLabel:"Asignaturas impartidas en el periodo evaluado"
+  }
+};
+
+const UNI_ORDER=["UAM","UCM","UAH","URJC"];
+
+/* ============================================================ Estado ============================================================ */
 let state = {
+  uni:"UAM",
   submodel:null,
   meta:{nombre:"",categoria:"",departamento:"",centro:"",area:"",cursos:"",asignaturas:""},
-  answers:{},   // por code: string | {sub} | [rows]
+  answers:{}
 };
 let stepIndex = 0;
 
-/* ============================ Utilidades ============================ */
+/* ============================================================ Utilidades ============================================================ */
 const $=(s,el=document)=>el.querySelector(s);
 const el=(t,c,txt)=>{const e=document.createElement(t);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e;};
 
-function currentModel(){return state.submodel?MODELS[state.submodel]:null;}
-function dimList(){ // dimensiones presentes en el submodelo, en orden 1..4
+function U(){return UNIS[state.uni];}
+function DIMS(){return U().dims;}
+function MODELS(){return U().models;}
+function currentModel(){return state.submodel?MODELS()[state.submodel]:null;}
+function modelKeys(){return Object.keys(MODELS());}
+// Sólo cuenta como "hay respuestas" lo que la persona ha escrito de verdad:
+// abrir un bloque crea contenedores vacíos que no deben disparar el aviso.
+function hasAnswers(){
+  const m=currentModel(); if(!m)return false;
+  return m.questions.some(q=>answerToText(q));
+}
+
+function dimList(){
   const m=currentModel(); if(!m)return [];
-  const present=[...new Set(m.questions.map(q=>q.dim))].sort();
-  return present;
+  return [...new Set(m.questions.map(q=>q.dim))].sort((a,b)=>a-b);
 }
 function questionsByDim(d){return currentModel().questions.filter(q=>q.dim===d);}
 
-// Pasos: 0 Inicio, 1 Datos, luego una por dimensión, luego Generar
+function stepLabel(d){
+  const n=DIMS()[d].name.split("·")[0].trim();      // "Dimensión 1" / "Bloque 1"
+  return n.replace(/^Dimensión/,"Dim.");
+}
 function buildStepsMeta(){
   const arr=[{key:"inicio",label:"Inicio"},{key:"datos",label:"Tus datos"}];
-  dimList().forEach(d=>arr.push({key:"dim"+d,label:"Dim. "+d}));
+  dimList().forEach(d=>arr.push({key:"dim"+d,label:stepLabel(d)}));
   arr.push({key:"generar",label:"Generar"});
   return arr;
 }
 
-/* ============================ Render stepper ============================ */
+/* ============================================================ Cabecera ============================================================ */
+function initUniSelector(){
+  const sel=$("#uniSel");
+  UNI_ORDER.forEach(k=>{
+    const o=el("option",null,UNIS[k].name+" · "+UNIS[k].short);
+    o.value=k; sel.appendChild(o);
+  });
+  sel.value=state.uni;
+  sel.onchange=e=>{
+    const nk=e.target.value;
+    if(nk===state.uni)return;
+    if(hasAnswers() && !confirm("Cambiar de universidad vaciará las respuestas que has escrito, porque cada programa tiene preguntas distintas.\n\nSi quieres conservarlas, cancela y guarda antes tu progreso desde el último paso.\n\n¿Cambiar de todos modos?")){
+      e.target.value=state.uni; return;
+    }
+    state.uni=nk; state.submodel=null; state.answers={}; stepIndex=0;
+    syncHeader(); render();
+  };
+  syncHeader();
+}
+function syncHeader(){
+  $("#uniSub").textContent=U().sub;
+  const a=$("#ftOficial"); a.href=U().oficial;
+  $("#ftFuente").textContent=U().fuente;
+  document.title="Generador de autoinformes "+U().short+" · AcreditaSalud";
+}
+
+/* ============================================================ Stepper ============================================================ */
 function renderSteps(){
   const steps=$("#steps"); steps.innerHTML="";
   const metaSteps=state.submodel?buildStepsMeta():[{key:"inicio",label:"Inicio"}];
@@ -338,8 +878,10 @@ function renderSteps(){
   $("#pbar").style.width=((stepIndex)/(total-1)*100)+"%";
 }
 
-/* ============================ Render principal ============================ */
+/* ============================================================ Render principal ============================================================ */
 function render(){
+  const ks=modelKeys();
+  if(ks.length===1 && !state.submodel) state.submodel=ks[0];
   renderSteps();
   const main=$("#main"); main.innerHTML="";
   const metaSteps=state.submodel?buildStepsMeta():[{key:"inicio"}];
@@ -357,48 +899,57 @@ function navButtons(onPrev,onNext,nextLabel){
   nav.appendChild(prev); nav.appendChild(next); return nav;
 }
 
-/* ===== Guía específica para el perfil clínico AV.CC.SS ===== */
-const AV_GUIDE = [
-  {t:"Tu contexto es asistencial", c:"Como Asociado de Ciencias de la Salud o Vinculado, tu docencia se desarrolla sobre todo en la Unidad Docente del hospital: prácticas clínicas, rotaciones, sesiones clínicas y docencia a pie de cama. Redacta situando tu enseñanza en ese entorno real. Recuerda el requisito mínimo de 6 horas de docencia por curso."},
-  {t:"P13 · Evaluación Clínica (ECOE)", c:"Es la pregunta propia de tu perfil. Indica con claridad si participaste en el diseño de la prueba y/o si apoyaste el día de su realización, y describe brevemente tu papel (estaciones, evaluación de estudiantes, elaboración de casos)."},
-  {t:"Buenas prácticas clínicas (P15)", c:"Apóyate en metodologías propias de Ciencias de la Salud: aprendizaje basado en casos/pacientes, simulación clínica, pacientes estandarizados, MiniCEX, bedside teaching, role-play de la relación clínica. Elige la que mejor evidencie tu mejor práctica."},
-  {t:"Evaluación y feedback (P16–P17)", c:"Menciona rúbricas de competencias clínicas, evaluación de habilidades y el feedback estructurado tras la rotación o la práctica (por ejemplo, modelo Pendleton o feedback en tiempo real). Para el feedback cualitativo debes adjuntar evidencia; si es oral a pie de cama, aporta un documento que describa cómo lo desarrollas."},
-  {t:"Análisis de tu docencia (P18–P19)", c:"Como fuentes, valen la percepción del estudiantado en prácticas, las opiniones de la Unidad Docente/servicio y los resultados de la ECOE. Adjunta un documento propio de análisis, no solo informes de encuestas."},
-  {t:"Materiales (P20–P21)", c:"Buenos materiales clínicos: guías de prácticas y de rotación, checklists de habilidades, casos clínicos, vídeos de procedimientos, material de simulación. Hasta cinco; en Moodle recuerda incluir el número del curso."},
-  {t:"Quién te valora", c:"Además de la dirección de tu departamento, puede aportar valoración cualitativa quien coordina tu Unidad Docente en el Hospital. Escribe pensando también en ese lector."}
-];
-function renderAVguide(){
+/* ===== Guía de perfil clínico (si el submodelo la tiene) ===== */
+function renderGuide(g){
   const card=el("div","card");
   card.style.borderLeft="5px solid var(--amber)";
   const tg=el("button","help-toggle");
   tg.style.fontSize="15px";
-  tg.textContent="🩺 Guía para el perfil clínico (AV.CC.SS) — ábrela";
+  const open="🩺 "+g.label+" — ocultar", closed="🩺 "+g.label+" — ábrela";
+  tg.textContent=closed;
   const body=el("div","help"); body.style.background="#fff8ee"; body.style.borderColor="#f0dcae";
-  body.innerHTML=AV_GUIDE.map(s=>'<h4>'+s.t+'</h4><p style="margin:0 0 10px">'+s.c+'</p>').join("");
-  tg.onclick=()=>{body.classList.toggle("open");tg.textContent=(body.classList.contains("open")?"🩺 Guía para el perfil clínico (AV.CC.SS) — ocultar":"🩺 Guía para el perfil clínico (AV.CC.SS) — ábrela");};
-  const head=el("div"); head.innerHTML='<div style="font-family:var(--serif);font-size:18px;color:var(--brand-dark);margin-bottom:2px">Preparas tu informe como Ciencias de la Salud</div><div style="color:var(--muted);font-size:13.5px;margin-bottom:8px">Consejos adaptados a la docencia clínica y hospitalaria, dimensión por dimensión.</div>';
+  body.innerHTML=g.sections.map(s=>'<h4>'+esc(s.t)+'</h4><p style="margin:0 0 10px">'+esc(s.c)+'</p>').join("");
+  tg.onclick=()=>{body.classList.toggle("open");tg.textContent=(body.classList.contains("open")?open:closed);};
+  const head=el("div");
+  head.innerHTML='<div style="font-family:var(--serif);font-size:18px;color:var(--brand-dark);margin-bottom:2px">'+esc(g.title)+'</div>'+
+                 '<div style="color:var(--muted);font-size:13.5px;margin-bottom:8px">'+esc(g.intro)+'</div>';
   card.appendChild(head); card.appendChild(tg); card.appendChild(body);
   return card;
 }
+function currentGuide(){const m=currentModel();return m&&m.guide?m.guide:null;}
 
 function renderInicio(main){
   const c=el("div","card");
-  c.appendChild(el("h2","section","Prepara tu autoinforme DOCENTIA-UAM paso a paso"));
-  c.appendChild(el("p","lead","Esta herramienta te guía por las preguntas de reflexión del Informe Docente, con ayudas sobre qué valora la comisión, y genera un borrador en Word que podrás revisar y copiar en la plataforma oficial. Elige tu submodelo de participación para empezar."));
+  c.appendChild(el("h2","section","Prepara tu autoinforme "+U().short+" paso a paso"));
+  c.appendChild(el("p","lead",U().intro));
 
-  const smWrap=el("div","submodels");
-  Object.entries(MODELS).forEach(([k,m])=>{
-    const d=el("div","sm"+(state.submodel===k?" sel":""));
-    d.appendChild(el("h3",null,m.name));
-    d.appendChild(el("p",null,m.desc));
-    d.onclick=()=>{state.submodel=k; render();};
-    smWrap.appendChild(d);
-  });
-  c.appendChild(smWrap);
+  if(U().aviso){
+    const av=el("div","unimsg"); av.innerHTML=U().aviso; c.appendChild(av);
+  }
 
-  if(state.submodel){
-    const n=el("div","note"); n.innerHTML="Has elegido el submodelo <b>"+MODELS[state.submodel].name+"</b>. Puedes cambiarlo aquí en cualquier momento.";
+  const keys=modelKeys();
+  if(keys.length===1){
+    if(!state.submodel)state.submodel=keys[0];
+    const n=el("div","note");
+    n.innerHTML="<b>"+esc(MODELS()[keys[0]].name)+".</b> "+esc(MODELS()[keys[0]].desc);
     c.appendChild(n);
+  }else{
+    const smWrap=el("div","submodels");
+    if(keys.length>3)smWrap.style.gridTemplateColumns="repeat(2,1fr)";
+    keys.forEach(k=>{
+      const m=MODELS()[k];
+      const d=el("div","sm"+(state.submodel===k?" sel":""));
+      d.appendChild(el("h3",null,m.name));
+      d.appendChild(el("p",null,m.desc));
+      d.onclick=()=>{state.submodel=k; render();};
+      smWrap.appendChild(d);
+    });
+    c.appendChild(smWrap);
+    if(state.submodel){
+      const n=el("div","note");
+      n.innerHTML="Has elegido <b>"+esc(MODELS()[state.submodel].name)+"</b>. Puedes cambiarlo aquí en cualquier momento.";
+      c.appendChild(n);
+    }
   }
 
   const tb=el("div","toolbar");
@@ -407,16 +958,12 @@ function renderInicio(main){
   tb.appendChild(load);
   c.appendChild(tb);
 
-  const nav=navButtons(null, state.submodel?()=>{stepIndex=1;render();}:null, "Empezar →");
-  c.appendChild(nav);
+  c.appendChild(navButtons(null, state.submodel?()=>{stepIndex=1;render();}:null, "Empezar →"));
   main.appendChild(c);
 
-  if(state.submodel==="AV") main.appendChild(renderAVguide());
+  const g=currentGuide(); if(g)main.appendChild(renderGuide(g));
 
-  if(!state.submodel){
-    const hint=el("div","note","👆 Selecciona un submodelo para activar el asistente.");
-    main.appendChild(hint);
-  }
+  if(!state.submodel)main.appendChild(el("div","note","👆 Selecciona una opción para activar el asistente."));
 }
 
 function renderDatos(main){
@@ -427,7 +974,7 @@ function renderDatos(main){
   const fields=[
     ["nombre","Nombre y apellidos"],["categoria","Categoría docente"],
     ["departamento","Departamento / Área"],["centro","Centro / Facultad"],
-    ["area","Ámbito de Ciencias de la Salud (opcional)"],["cursos","Cursos elegidos (p. ej. 2022-23, 2023-24, 2024-25)"]
+    ["area","Ámbito de Ciencias de la Salud (opcional)"],["cursos",U().metaHint]
   ];
   fields.forEach(([k,l])=>{
     const w=el("div"); const lab=el("label","fld",l); lab.htmlFor="m_"+k;
@@ -437,7 +984,7 @@ function renderDatos(main){
   });
   c.appendChild(g);
   const w2=el("div"); w2.style.marginTop="14px";
-  const lab2=el("label","fld","Asignaturas representativas elegidas (mín. 3, una obligatoria si procede)");
+  const lab2=el("label","fld",U().asignaturasLabel);
   const ta=el("textarea"); ta.value=state.meta.asignaturas||""; ta.style.minHeight="80px";
   ta.oninput=e=>state.meta.asignaturas=e.target.value;
   w2.appendChild(lab2); w2.appendChild(ta); c.appendChild(w2);
@@ -446,16 +993,21 @@ function renderDatos(main){
   main.appendChild(c);
 }
 
+/* ============================================================ Campos ============================================================ */
 function charLimitInfo(q){return q.limit?("Límite: "+q.limit+" caracteres"):"";}
 
-function renderTextarea(q, container){
-  const cur=state.answers[q.code]||"";
-  const ta=el("textarea"); ta.value=cur;
+function counterFor(inp, limit){
   const counter=el("div","counter");
-  const upd=()=>{const n=ta.value.length; counter.textContent=n+(q.limit?(" / "+q.limit):"")+" caracteres";
-    counter.classList.toggle("over", q.limit&&n>q.limit);};
-  ta.oninput=()=>{state.answers[q.code]=ta.value; upd();};
-  container.appendChild(ta); container.appendChild(counter); upd();
+  const upd=()=>{const n=inp.value.length; counter.textContent=n+(limit?(" / "+limit):"")+" caracteres";
+    counter.classList.toggle("over", !!limit && n>limit);};
+  inp.addEventListener("input",upd); upd();
+  return counter;
+}
+
+function renderTextarea(q, container){
+  const ta=el("textarea"); ta.value=state.answers[q.code]||"";
+  ta.oninput=()=>{state.answers[q.code]=ta.value;};
+  container.appendChild(ta); container.appendChild(counterFor(ta,q.limit));
 }
 
 function renderBP(q, container){
@@ -468,10 +1020,8 @@ function renderBP(q, container){
     const inp=isText?el("textarea"):el("input");
     if(!isText)inp.type="text";
     inp.value=ans[sf.k]||"";
-    const counter=el("div","counter");
-    const upd=()=>{const n=inp.value.length;counter.textContent=n+" / "+sf.limit+" caracteres";counter.classList.toggle("over",n>sf.limit);};
-    inp.oninput=()=>{ans[sf.k]=inp.value;upd();};
-    w.appendChild(inp); if(isText){w.appendChild(counter);upd();}
+    inp.oninput=()=>{ans[sf.k]=inp.value;};
+    w.appendChild(inp); if(isText)w.appendChild(counterFor(inp,sf.limit));
     container.appendChild(w);
   });
 }
@@ -502,60 +1052,146 @@ function renderRepeater(q, container){
   const add=el("button","addbtn","+ Añadir fila");
   add.onclick=()=>{ if(q.max&&rows.length>=q.max){alert("Máximo "+q.max+" elementos.");return;} rows.push({});draw();};
   container.appendChild(add);
-  if(q.max){container.appendChild(el("div","counter","Máximo "+q.max+" materiales."));}
+  if(q.max)container.appendChild(el("div","counter","Máximo "+q.max+" elementos."));
+}
+
+function renderScale(q, container){
+  const ans=state.answers[q.code]||{};
+  state.answers[q.code]=ans;
+  q.items.forEach((txt,i)=>{
+    const w=el("div","scale-item");
+    const t=el("div","txt"); t.textContent=(i+1)+". "+txt; w.appendChild(t);
+    const opts=el("div","scale-opts");
+    for(let v=q.min;v<=q.max;v++){
+      const b=el("button",(ans[i]===v?"sel":""),String(v));
+      b.type="button";
+      b.onclick=()=>{ans[i]=v;[...opts.children].forEach(x=>x.classList.remove("sel"));b.classList.add("sel");};
+      opts.appendChild(b);
+    }
+    w.appendChild(opts); container.appendChild(w);
+  });
+}
+
+function renderRubric(q, container){
+  const wrap=el("div","rub");
+  q.opts.forEach((o,i)=>{
+    const lab=el("label","opt"+(state.answers[q.code]===i?" sel":""));
+    const r=el("input"); r.type="radio"; r.name="rub_"+q.code; r.checked=state.answers[q.code]===i;
+    r.onchange=()=>{state.answers[q.code]=i;[...wrap.children].forEach(x=>x.classList.remove("sel"));lab.classList.add("sel");};
+    lab.appendChild(r); lab.appendChild(el("span",null,o.v));
+    wrap.appendChild(lab);
+  });
+  container.appendChild(wrap);
+}
+
+function renderExamples(q, container){
+  if(!Array.isArray(state.answers[q.code]))state.answers[q.code]=[];
+  const arr=state.answers[q.code];
+  for(let i=0;i<q.n;i++){
+    if(!arr[i])arr[i]={};
+    const blk=el("div","exblock");
+    blk.appendChild(el("div","exh","Ejemplo "+(i+1)+" de "+q.n));
+    q.fields.forEach(f=>{
+      const w=el("div","subq");
+      w.appendChild(el("label","fld",f.l));
+      const isText=(f.limit||1500)>200;
+      const inp=isText?el("textarea"):el("input");
+      if(!isText)inp.type="text";
+      if(isText)inp.style.minHeight="90px";
+      inp.value=arr[i][f.k]||"";
+      inp.oninput=()=>{arr[i][f.k]=inp.value;};
+      w.appendChild(inp); if(isText)w.appendChild(counterFor(inp,f.limit));
+      blk.appendChild(w);
+    });
+    container.appendChild(blk);
+  }
+}
+
+function renderMulti(q, container){
+  if(!Array.isArray(state.answers[q.code]))state.answers[q.code]=[];
+  const sel=state.answers[q.code];
+  const wrap=el("div","multi");
+  q.opts.forEach(o=>{
+    const lab=el("label",sel.indexOf(o)>=0?"sel":"");
+    const cb=el("input"); cb.type="checkbox"; cb.checked=sel.indexOf(o)>=0;
+    cb.onchange=()=>{ const k=sel.indexOf(o);
+      if(cb.checked&&k<0)sel.push(o); else if(!cb.checked&&k>=0)sel.splice(k,1);
+      lab.classList.toggle("sel",cb.checked); };
+    lab.appendChild(cb); lab.appendChild(el("span",null,o));
+    wrap.appendChild(lab);
+  });
+  container.appendChild(wrap);
+}
+
+function renderField(q, container){
+  if(q.type==="textarea")return renderTextarea(q,container);
+  if(q.type==="bp")return renderBP(q,container);
+  if(q.type==="repeater")return renderRepeater(q,container);
+  if(q.type==="scale")return renderScale(q,container);
+  if(q.type==="rubric")return renderRubric(q,container);
+  if(q.type==="examples")return renderExamples(q,container);
+  if(q.type==="multi")return renderMulti(q,container);
 }
 
 function renderDim(main, d){
-  if(state.submodel==="AV" && d===2) main.appendChild(renderAVguide());
+  const g=currentGuide();
+  if(g && dimList()[0]!==d && dimList().indexOf(d)===1) main.appendChild(renderGuide(g));
   const c=el("div","card");
-  c.appendChild(el("span","dimtag",DIMS[d].name));
-  c.appendChild(el("h2","section","Responde las preguntas de esta dimensión"));
+  c.appendChild(el("span","dimtag",DIMS()[d].name));
+  c.appendChild(el("h2","section","Responde los apartados de este bloque"));
   questionsByDim(d).forEach(q=>{
     const qd=el("div","q");
-    const head=el("div"); head.innerHTML='<span class="qcode">'+q.code+'.</span> ';
+    const head=el("div"); head.innerHTML='<span class="qcode">'+esc(q.code)+'.</span> ';
     const t=el("span"); t.className="qtitle"; t.textContent=q.title;
     head.appendChild(t); qd.appendChild(head);
     if(q.limit)qd.appendChild(el("div","counter",charLimitInfo(q)));
     qd.appendChild(el("div","enun",q.enun));
     if(q.help){
-      const tg=el("button","help-toggle","▸ Ver qué valora la comisión y cómo enfocarlo");
+      const tg=el("button","help-toggle","▸ Ver qué se valora y cómo enfocarlo");
       const hp=el("div","help");
-      hp.innerHTML='<h4>Qué valora la comisión</h4><ul>'+q.help.v.map(x=>"<li>"+x+"</li>").join("")+
-        '</ul><h4>Cómo enfocarlo</h4><ul>'+q.help.e.map(x=>"<li>"+x+"</li>").join("")+'</ul>';
-      tg.onclick=()=>{hp.classList.toggle("open");tg.textContent=(hp.classList.contains("open")?"▾ Ocultar ayuda":"▸ Ver qué valora la comisión y cómo enfocarlo");};
+      let html="";
+      if(q.help.v)html+='<h4>Qué se valora</h4><ul>'+q.help.v.map(x=>"<li>"+esc(x)+"</li>").join("")+'</ul>';
+      if(q.help.e)html+='<h4>Cómo enfocarlo</h4><ul>'+q.help.e.map(x=>"<li>"+esc(x)+"</li>").join("")+'</ul>';
+      hp.innerHTML=html;
+      tg.onclick=()=>{hp.classList.toggle("open");tg.textContent=(hp.classList.contains("open")?"▾ Ocultar ayuda":"▸ Ver qué se valora y cómo enfocarlo");};
       qd.appendChild(tg); qd.appendChild(hp);
     }
-    if(q.type==="textarea")renderTextarea(q,qd);
-    else if(q.type==="bp")renderBP(q,qd);
-    else if(q.type==="repeater")renderRepeater(q,qd);
+    renderField(q,qd);
     c.appendChild(qd);
   });
   const dims=dimList(); const pos=dims.indexOf(d);
-  const prevStep=()=>{stepIndex=stepIndex-1;render();};
-  const nextStep=()=>{stepIndex=stepIndex+1;render();};
-  c.appendChild(navButtons(prevStep,nextStep, pos===dims.length-1?"Ir a generar →":"Siguiente →"));
+  c.appendChild(navButtons(()=>{stepIndex=stepIndex-1;render();}, ()=>{stepIndex=stepIndex+1;render();},
+    pos===dims.length-1?"Ir a generar →":"Siguiente →"));
   main.appendChild(c);
 }
 
-/* ============================ Revisión + generación ============================ */
+/* ============================================================ Respuestas a texto ============================================================ */
 function answerToText(q){
   const a=state.answers[q.code];
   if(q.type==="textarea")return (a||"").trim();
-  if(q.type==="bp"){ if(!a)return ""; const parts=[];
-    if(a.asig)parts.push("Asignatura: "+a.asig);
-    if(a.desc)parts.push("Descripción de la buena práctica: "+a.desc);
-    if(a.motiv)parts.push("Motivación o causa: "+a.motiv);
-    if(a.conse)parts.push("Consecuencias o impacto: "+a.conse);
-    return parts.join("\n"); }
+  if(q.type==="bp"){ if(!a)return ""; return q.sub.map(sf=>a[sf.k]?(sf.l+": "+a[sf.k]):null).filter(Boolean).join("\n"); }
   if(q.type==="repeater"){ if(!a||!a.length)return "";
-    return a.map((row,i)=>(i+1)+". "+q.cols.map(c=>row[c.k]?(c.l+": "+row[c.k]):null).filter(Boolean).join(" · ")).join("\n"); }
+    return a.map((row,i)=>(i+1)+". "+q.cols.map(c=>row[c.k]?(c.l+": "+row[c.k]):null).filter(Boolean).join(" · ")).filter(s=>s.length>3).join("\n"); }
+  if(q.type==="scale"){ if(!a)return "";
+    const lines=q.items.map((t,i)=>a[i]==null?null:((i+1)+". "+t+" → "+a[i]+"/"+q.max)).filter(Boolean);
+    return lines.join("\n"); }
+  if(q.type==="rubric"){ return (a==null)?"":q.opts[a].v; }
+  if(q.type==="examples"){ if(!a||!a.length)return "";
+    const blocks=a.map((ex,i)=>{
+      if(!ex)return null;
+      const parts=q.fields.map(f=>ex[f.k]?(f.l+": "+ex[f.k]):null).filter(Boolean);
+      return parts.length?("Ejemplo "+(i+1)+"\n"+parts.join("\n")):null;
+    }).filter(Boolean);
+    return blocks.join("\n\n"); }
+  if(q.type==="multi"){ return (a&&a.length)?a.join(" · "):""; }
   return "";
 }
 
+/* ============================================================ Revisión y generación ============================================================ */
 function renderGenerar(main){
   const c=el("div","card");
   c.appendChild(el("h2","section","Revisa y genera tu informe"));
-  c.appendChild(el("p","lead","Repasa tus respuestas. Cuando estés lista, descarga el informe en Word para revisarlo y copiarlo en la plataforma oficial. También puedes guardar tu progreso para seguir más tarde."));
+  c.appendChild(el("p","lead","Repasa tus respuestas. Cuando estés lista, descarga el borrador en Word para revisarlo y copiarlo en la plataforma oficial. También puedes guardar tu progreso para seguir más tarde."));
 
   const tb=el("div","toolbar");
   const wbtn=el("button","btn primary big","⬇ Descargar informe (Word)"); wbtn.onclick=generateDocx;
@@ -565,19 +1201,18 @@ function renderGenerar(main){
   tb.appendChild(wbtn); tb.appendChild(pbtn); tb.appendChild(save); tb.appendChild(load);
   c.appendChild(tb);
 
-  // resumen de completitud
-  const total=currentModel().questions.length;
-  let done=0; currentModel().questions.forEach(q=>{if(answerToText(q))done++;});
-  c.appendChild(el("div","note","Has completado "+done+" de "+total+" preguntas del submodelo "+currentModel().name+"."));
+  const qs=currentModel().questions;
+  let done=0; qs.forEach(q=>{if(answerToText(q))done++;});
+  c.appendChild(el("div","note","Has completado "+done+" de "+qs.length+" apartados de "+currentModel().name+" ("+U().short+")."));
 
   const dl=el("dl","review");
   dimList().forEach(d=>{
-    const h=el("dt"); h.style.color="var(--accent)"; h.style.fontSize="15px"; h.textContent=DIMS[d].name; dl.appendChild(h);
+    const h=el("dt"); h.style.color="var(--accent)"; h.style.fontSize="15px"; h.textContent=DIMS()[d].name; dl.appendChild(h);
     questionsByDim(d).forEach(q=>{
-      const dt=el("dt",null,q.code+". "+q.title);
+      dl.appendChild(el("dt",null,q.code+". "+q.title));
       const dd=el("dd"); const txt=answerToText(q);
       if(txt)dd.textContent=txt; else {dd.textContent="(sin responder)";dd.className="empty";}
-      dl.appendChild(dt); dl.appendChild(dd);
+      dl.appendChild(dd);
     });
   });
   c.appendChild(dl);
@@ -585,39 +1220,53 @@ function renderGenerar(main){
   main.appendChild(c);
 }
 
-/* ============================ Guardar / cargar ============================ */
+/* ============================================================ Guardar / cargar ============================================================ */
 function download(filename, blob){
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename;
   document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
 }
 function saveJSON(){
   const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
-  download("DOCENTIA_progreso.json", blob);
+  download("DOCENTIA_"+state.uni+"_progreso.json", blob);
 }
 function loadJSON(){
   const inp=document.createElement("input"); inp.type="file"; inp.accept=".json,application/json";
   inp.onchange=e=>{const f=e.target.files[0]; if(!f)return; const r=new FileReader();
-    r.onload=()=>{try{const data=JSON.parse(r.result);
-      if(data.submodel&&MODELS[data.submodel]){state=Object.assign({submodel:null,meta:{},answers:{}},data);stepIndex=1;render();}
-      else alert("El archivo no tiene un submodelo válido.");
+    r.onload=()=>{try{
+      const data=JSON.parse(r.result);
+      const uni=data.uni||"UAM";
+      if(!UNIS[uni]){alert("El archivo no corresponde a ninguna universidad de esta herramienta.");return;}
+      if(!data.submodel||!UNIS[uni].models[data.submodel]){alert("El archivo no tiene un modelo válido para "+UNIS[uni].short+".");return;}
+      state=Object.assign({uni:"UAM",submodel:null,meta:{},answers:{}},data);
+      state.uni=uni;
+      $("#uniSel").value=uni; syncHeader();
+      stepIndex=1; render();
     }catch(err){alert("No se pudo leer el archivo JSON.");}};
     r.readAsText(f);};
   inp.click();
 }
 
-/* ============================ Generación PDF (impresión) ============================ */
+/* ============================================================ PDF (impresión) ============================================================ */
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+function metaLines(){
+  const md=state.meta;
+  return [["Universidad",U().name],["Nombre",md.nombre],["Categoría docente",md.categoria],
+    ["Departamento / Área",md.departamento],["Centro / Facultad",md.centro],
+    ["Ámbito de Ciencias de la Salud",md.area],["Cursos evaluados",md.cursos],
+    ["Asignaturas",md.asignaturas]].filter(x=>x[1]&&String(x[1]).trim());
+}
+
 function buildInformeHTML(){
-  const m=currentModel(); const md=state.meta;
+  const m=currentModel();
   let h='<div class="pdf-doc">';
-  h+='<div class="pdf-title">Informe Docente DOCENTIA-UAM</div>';
-  h+='<div class="pdf-sub">Submodelo: '+esc(m.name)+'</div>';
-  h+='<div class="pdf-note">Documento de trabajo · 19ª convocatoria (2026) · generado con la herramienta de AcreditaSalud.com</div>';
-  const metaLines=[["Nombre",md.nombre],["Categoría docente",md.categoria],["Departamento / Área",md.departamento],
-    ["Centro / Facultad",md.centro],["Ámbito de Ciencias de la Salud",md.area],["Cursos elegidos",md.cursos],["Asignaturas representativas",md.asignaturas]]
-    .filter(x=>x[1]&&x[1].trim());
-  if(metaLines.length){ h+='<div class="pdf-metatable">'+metaLines.map(x=>'<div><b>'+esc(x[0])+':</b> '+esc(x[1])+'</div>').join("")+'</div>'; }
+  h+='<div class="pdf-title">Autoinforme '+esc(U().short)+'</div>';
+  h+='<div class="pdf-sub">'+esc(m.name)+'</div>';
+  h+='<div class="pdf-note">Documento de trabajo · generado con la herramienta gratuita de AcreditaSalud.com</div>';
+  const ml=metaLines();
+  if(ml.length)h+='<div class="pdf-metatable">'+ml.map(x=>'<div><b>'+esc(x[0])+':</b> '+esc(x[1])+'</div>').join("")+'</div>';
   dimList().forEach(d=>{
-    h+='<div class="pdf-dim">'+esc(DIMS[d].name)+'</div>';
+    h+='<div class="pdf-dim">'+esc(DIMS()[d].name)+'</div>';
     questionsByDim(d).forEach(q=>{
       const txt=answerToText(q);
       h+='<div class="pdf-q"><div class="pdf-qh">'+esc(q.code+". "+q.title)+'</div>'+
@@ -625,7 +1274,7 @@ function buildInformeHTML(){
          '<div class="pdf-ans'+(txt?'':' empty')+'">'+esc(txt||"[Pendiente de completar]")+'</div></div>';
     });
   });
-  h+='<div class="pdf-foot">Documento de apoyo no oficial. La redacción es original y responsabilidad del docente. Verifica los textos y requisitos en la plataforma oficial del Programa DOCENTIA-UAM.</div>';
+  h+='<div class="pdf-foot">Documento de apoyo no oficial. La redacción es original y responsabilidad del docente. Verifica los textos, los requisitos y los plazos de la convocatoria en la plataforma oficial del programa '+esc(U().short)+'.</div>';
   h+='</div>';
   return h;
 }
@@ -636,8 +1285,7 @@ function printInforme(){
   window.print();
 }
 
-/* ============================ Generación Word (.docx) ============================ */
-function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+/* ============================================================ Word (.docx) ============================================================ */
 function wPara(text,{size=22,bold=false,color="1b2733",after=120,before=0,align=null,italic=false}={}){
   const lines=String(text==null?"":text).split("\n");
   const runs=lines.map((line,i)=>{
@@ -651,21 +1299,19 @@ function generateDocx(){
   if(typeof JSZip==="undefined"){alert("No se pudo cargar el generador de Word (JSZip). Revisa tu conexión.");return;}
   const m=currentModel();
   let body="";
-  body+=wPara("Informe Docente DOCENTIA-UAM",{size:40,bold:true,color:"0b5560",align:"center",after:60});
-  body+=wPara("Submodelo: "+m.name,{size:24,color:"0f7b8a",align:"center",after:40});
-  body+=wPara("Documento de trabajo · 19ª convocatoria (2026) · generado con la herramienta de AcreditaSalud.com",{size:16,italic:true,color:"5b6b78",align:"center",after:240});
+  body+=wPara("Autoinforme "+U().short,{size:40,bold:true,color:"0b5560",align:"center",after:60});
+  body+=wPara(U().name,{size:24,color:"0f7b8a",align:"center",after:40});
+  body+=wPara(m.name,{size:22,color:"0f7b8a",align:"center",after:40});
+  body+=wPara("Documento de trabajo · generado con la herramienta gratuita de AcreditaSalud.com",{size:16,italic:true,color:"5b6b78",align:"center",after:240});
 
-  const md=state.meta;
-  const metaLines=[["Nombre",md.nombre],["Categoría docente",md.categoria],["Departamento / Área",md.departamento],
-    ["Centro / Facultad",md.centro],["Ámbito de Ciencias de la Salud",md.area],["Cursos elegidos",md.cursos],["Asignaturas representativas",md.asignaturas]]
-    .filter(x=>x[1]&&x[1].trim());
-  if(metaLines.length){
+  const ml=metaLines();
+  if(ml.length){
     body+=wPara("Datos del docente",{size:26,bold:true,color:"0b5560",before:120,after:100});
-    metaLines.forEach(([k,v])=>{ body+=wPara(k+": "+v,{size:21,after:60}); });
+    ml.forEach(([k,v])=>{ body+=wPara(k+": "+v,{size:21,after:60}); });
   }
 
   dimList().forEach(d=>{
-    body+=wPara(DIMS[d].name,{size:28,bold:true,color:"0b5560",before:280,after:120});
+    body+=wPara(DIMS()[d].name,{size:28,bold:true,color:"0b5560",before:280,after:120});
     questionsByDim(d).forEach(q=>{
       body+=wPara(q.code+". "+q.title,{size:23,bold:true,color:"0f7b8a",before:160,after:40});
       body+=wPara(q.enun,{size:18,italic:true,color:"5b6b78",after:80});
@@ -674,7 +1320,7 @@ function generateDocx(){
     });
   });
   body+=wPara("",{after:200});
-  body+=wPara("Documento de apoyo no oficial. La redacción es original y responsabilidad del docente. Verifica los textos y requisitos en la plataforma oficial del Programa DOCENTIA-UAM.",{size:15,italic:true,color:"5b6b78",before:200});
+  body+=wPara("Documento de apoyo no oficial. La redacción es original y responsabilidad del docente. Verifica los textos, los requisitos y los plazos de la convocatoria en la plataforma oficial del programa "+U().short+".",{size:15,italic:true,color:"5b6b78",before:200});
 
   const documentXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+
     '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'+
@@ -698,10 +1344,11 @@ function generateDocx(){
   zip.folder("_rels").file(".rels",rels);
   zip.folder("word").file("document.xml",documentXml);
   zip.generateAsync({type:"blob",mimeType:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"})
-    .then(blob=>{ const name="Informe_DOCENTIA-UAM_"+state.submodel+".docx"; download(name,blob); });
+    .then(blob=>{ download("Autoinforme_"+U().short+"_"+state.submodel+".docx",blob); });
 }
 
-/* ============================ init ============================ */
+/* ============================================================ init ============================================================ */
+initUniSelector();
 render();
 </script>
 </body>
